@@ -95,10 +95,10 @@ InModuleScope $sut {
                 @{ Value = @{ Message = 'Regular verbose message' } }
             }
 
-            Mock Show-Object -Verifiable `
+            Mock Write-Error -Verifiable `
                 -MockWith {
-                    $InputObject | Should be ('No activity traces found. Make sure activity tracing and ' +
-                                              'logging Verbose stream are enabled in the runbook configuration.')
+                    $Message | Should be ('No activity traces found. Make sure activity tracing and ' +
+                                          'logging Verbose stream are enabled in the runbook configuration.')
                 }
 
             Show-GraphRunbookActivityTraces `
@@ -122,10 +122,10 @@ InModuleScope $sut {
 
             Mock Get-AzureRmAutomationJobOutputRecord
 
-            Mock Show-Object -Verifiable `
+            Mock Write-Error -Verifiable `
                 -MockWith {
-                    $InputObject | Should be ('No activity traces found. Make sure activity tracing and ' +
-                                              'logging Verbose stream are enabled in the runbook configuration.')
+                    $Message | Should be ('No activity traces found. Make sure activity tracing and ' +
+                                          'logging Verbose stream are enabled in the runbook configuration.')
                 }
 
             Show-GraphRunbookActivityTraces `

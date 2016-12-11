@@ -92,8 +92,8 @@ function Show-GraphRunbookActivityTraces(
     }
     else
     {
-        Show-Object -InputObject ('No activity traces found. Make sure activity tracing and ' +
-                                  'logging Verbose stream are enabled in the runbook configuration.')
+        Write-Error -Message ('No activity traces found. Make sure activity tracing and ' +
+                              'logging Verbose stream are enabled in the runbook configuration.')
     }
 }
 
