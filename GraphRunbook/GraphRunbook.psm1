@@ -70,7 +70,7 @@ function GetActivityExecutionInstances($GraphTraces)
     }
 }
 
-function Show-GraphRunbookActivityTrace(
+function Show-GraphRunbookActivityTraces(
     [Parameter(Mandatory = $true)]
     [string]
     $ResourceGroupName,
@@ -97,4 +97,4 @@ function Show-GraphRunbookActivityTrace(
     }
 }
 
-Export-ModuleMember -Function Show-GraphRunbookActivityTrace
+Export-ModuleMember -Function Show-GraphRunbookActivityTraces

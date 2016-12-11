@@ -5,7 +5,7 @@ Get-Module -Name $sut -All | Remove-Module -Force -ErrorAction Ignore
 Import-Module -Name "$here\$sut.psm1" -Force -ErrorAction Stop
 
 InModuleScope $sut {
-    Describe "Show-GraphRunbookActivityTrace" {
+    Describe "Show-GraphRunbookActivityTraces" {
 
         $TestJobId = New-Guid
         $TestResourceGroup = 'TestResourceGroupName'
@@ -66,7 +66,7 @@ InModuleScope $sut {
                     $InputObject[1].Output[2] | Should be 1
                 }
 
-            Show-GraphRunbookActivityTrace `
+            Show-GraphRunbookActivityTraces `
                 -ResourceGroupName $TestResourceGroup `
                 -AutomationAccountName $TestAutomationAccount  `
                 -JobId $TestJobId
@@ -101,7 +101,7 @@ InModuleScope $sut {
                                               'logging Verbose stream are enabled in the runbook configuration.')
                 }
 
-            Show-GraphRunbookActivityTrace `
+            Show-GraphRunbookActivityTraces `
                 -ResourceGroupName $TestResourceGroup `
                 -AutomationAccountName $TestAutomationAccount  `
                 -JobId $TestJobId
@@ -128,7 +128,7 @@ InModuleScope $sut {
                                               'logging Verbose stream are enabled in the runbook configuration.')
                 }
 
-            Show-GraphRunbookActivityTrace `
+            Show-GraphRunbookActivityTraces `
                 -ResourceGroupName $TestResourceGroup `
                 -AutomationAccountName $TestAutomationAccount  `
                 -JobId $TestJobId
