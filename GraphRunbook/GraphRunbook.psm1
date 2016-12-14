@@ -70,20 +70,22 @@ function GetActivityExecutionInstances($GraphTraces)
     }
 }
 
-function Show-GraphRunbookActivityTraces(
-    [Parameter(Mandatory = $true)]
-    [string]
-    $ResourceGroupName,
-
-    [Parameter(Mandatory = $true)]
-    [string]
-    $AutomationAccountName,
-
-    [Parameter(Mandatory = $true)]
-    [string]
-    $JobId
-)
+function Show-GraphRunbookActivityTraces
 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $AutomationAccountName,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $JobId
+    )
+
     $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
     $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
     if ($ActivityExecutionInstances)
