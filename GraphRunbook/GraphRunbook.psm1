@@ -79,6 +79,26 @@ function Show-GraphRunbookActivityTraces
 Shows graphical runbook activity traces for an Azure Automation job
 
 
+.DESCRIPTION
+
+Graphical runbook activity tracing data is extremely helpful when testing and troubleshooting graphical runbooks in Azure Automation. Specifically, it can help the user determine the execution order of activities, any activity start and finish time, and any activity input and output data. Azure Automation saves this data encoded in JSON in the job Verbose stream.
+
+Even though this data is very valuable, it may not be directly human-readable in the raw format, especially when activities input and output large and complex objects. Show-GraphRunbookActivityTraces command simplifies this task. It retrieves activity tracing data from a specified Azure Automation job, then parses and displays this data in a user-friendly tree structure:
+
+	- Activity execution instance 1
+		- Start time, end time, and duration
+		- Input
+			- <parameter name> : <object>
+			- <parameter name> : <object>
+			...
+		- Output
+			- <output object 1>
+			- <output object 2>
+			...
+	- Activity execution instance 2
+	...
+
+
 .PARAMETER ResourceGroupName
 
 Azure Resource Group name
