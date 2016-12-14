@@ -72,6 +72,43 @@ function GetActivityExecutionInstances($GraphTraces)
 
 function Show-GraphRunbookActivityTraces
 {
+<#
+
+.SYNOPSIS
+
+Shows graphical runbook activity traces for an Azure Automation job
+
+
+.PARAMETER ResourceGroupName
+
+Azure Resource Group name
+
+
+.PARAMETER AutomationAccountName
+
+Azure Automation Account name
+
+
+.PARAMETER JobId
+
+Azure Automation graphical runbook job ID
+
+
+.EXAMPLE
+
+Show-GraphRunbookActivityTraces -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -JobId b15d38a1-ddea-49d1-bd90-407f66f282ef
+
+
+.LINK
+
+Source code: https://github.com/azureautomation/graphical-runbook-tools
+
+
+.LINK
+
+Azure Automation: https://azure.microsoft.com/services/automation
+
+#>
     param(
         [Parameter(Mandatory = $true)]
         [string]
