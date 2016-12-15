@@ -50,7 +50,7 @@ InModuleScope $sut {
             $InputObject[1].Output[2] | Should be 1
         }
 
-        Context "When Graph Runbook activity traces exist" {
+        Context "When Graph Runbook activity traces exist and job ID is known" {
             Mock Get-AzureRmAutomationJobOutput -Verifiable `
                 -ParameterFilter {
                     ($ResourceGroupName -eq $TestResourceGroup) -and
@@ -80,6 +80,44 @@ InModuleScope $sut {
                 -ResourceGroupName $TestResourceGroup `
                 -AutomationAccountName $TestAutomationAccount  `
                 -JobId $TestJobId
+
+            It "Shows Graph Runbook activity traces" {
+                Assert-VerifiableMocks
+            }
+        }
+
+        Context "When Graph Runbook activity traces exist and runbook name is known" {
+            $TestRunbookName = 'TestRunbookName'
+
+            Mock Get-AzureRmAutomationJobOutput -Verifiable `
+                -ParameterFilter {
+                    ($ResourceGroupName -eq $TestResourceGroup) -and
+                    ($AutomationAccountName -eq $TestAutomationAccount) -and
+                    ($JobId -eq $TestJobId) -and
+                    ($Stream -eq 'Verbose')
+                } `
+                -MockWith {
+                    1..6
+                }
+
+            function Get-AzureRmAutomationJobOutputRecord {
+                [CmdletBinding()]
+                param ([Parameter(ValueFromPipeline = $true)] $Id)
+
+                process {
+                    CreateTestJobOutputRecord -Id $Id
+                }
+            }
+
+            Mock Show-Object -Verifiable `
+                -MockWith {
+                    VerifyShowObjectInput -InputObject $InputObject
+                }
+
+            Show-GraphRunbookActivityTraces `
+                -ResourceGroupName $TestResourceGroup `
+                -AutomationAccountName $TestAutomationAccount  `
+                -RunbookName $TestRunbookName
 
             It "Shows Graph Runbook activity traces" {
                 Assert-VerifiableMocks
