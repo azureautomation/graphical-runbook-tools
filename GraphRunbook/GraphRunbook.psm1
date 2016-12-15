@@ -98,19 +98,20 @@ Even though this data is very valuable, it may not be directly human-readable in
     - Activity execution instance 2
     ...
 
+Prerequisites
+=============
 
-.NOTES
-
-The following modules are required:
+1. The following modules are required:
         AzureRm.Automation
         PowerShellCookbook
-Run the following commands to install these modules from the PowerShell gallery:
+
+   Run the following commands to install these modules from the PowerShell gallery:
         Install-Module -Name AzureRM.Automation
         Install-Module -Name PowerShellCookbook
 
-Make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet) before invoking Show-GraphRunbookActivityTraces.
+2. Make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet) before invoking Show-GraphRunbookActivityTraces.
 
-In the Azure Portal, enable activity-level tracing *and* verbose logging for a graphical runbook:
+3. In the Azure Portal, enable activity-level tracing *and* verbose logging for a graphical runbook:
     - Runbook Settings -> Logging and tracing
         - Logging verbose records: *On*
         - Trace level: *Basic* or *Detailed*
