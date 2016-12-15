@@ -148,7 +148,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
 #>
     param(
         [Parameter(Mandatory = $true)]
-        [string]
+        [guid]
         $JobId,
 
         [Parameter(Mandatory = $true)]
