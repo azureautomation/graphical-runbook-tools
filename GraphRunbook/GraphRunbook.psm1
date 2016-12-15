@@ -149,15 +149,15 @@ Azure Automation: https://azure.microsoft.com/services/automation
     param(
         [Parameter(Mandatory = $true)]
         [string]
+        $JobId,
+
+        [Parameter(Mandatory = $true)]
+        [string]
         $ResourceGroupName,
 
         [Parameter(Mandatory = $true)]
         [string]
-        $AutomationAccountName,
-
-        [Parameter(Mandatory = $true)]
-        [string]
-        $JobId
+        $AutomationAccountName
     )
 
     $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
