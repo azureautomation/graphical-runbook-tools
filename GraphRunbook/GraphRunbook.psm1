@@ -146,8 +146,12 @@ Source code: https://github.com/azureautomation/graphical-runbook-tools
 Azure Automation: https://azure.microsoft.com/services/automation
 
 #>
+    [CmdletBinding()]
+
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true)]
         [guid]
         $JobId,
 
@@ -160,16 +164,19 @@ Azure Automation: https://azure.microsoft.com/services/automation
         $AutomationAccountName
     )
 
-    $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
-    $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
-    if ($ActivityExecutionInstances)
+    process
     {
-        Show-Object -InputObject $ActivityExecutionInstances
-    }
-    else
-    {
-        Write-Error -Message ('No activity traces found. Make sure activity tracing and ' +
-                              'logging Verbose stream are enabled in the runbook configuration.')
+        $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
+        $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
+        if ($ActivityExecutionInstances)
+        {
+            Show-Object -InputObject $ActivityExecutionInstances
+        }
+        else
+        {
+            Write-Error -Message ('No activity traces found. Make sure activity tracing and ' +
+                                  'logging Verbose stream are enabled in the runbook configuration.')
+        }
     }
 }
 
