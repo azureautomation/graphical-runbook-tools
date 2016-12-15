@@ -85,18 +85,35 @@ Graphical runbook activity tracing data is extremely helpful when testing and tr
 
 Even though this data is very valuable, it may not be directly human-readable in the raw format, especially when activities input and output large and complex objects. Show-GraphRunbookActivityTraces command simplifies this task. It retrieves activity tracing data from a specified Azure Automation job, then parses and displays this data in a user-friendly tree structure:
 
-	- Activity execution instance 1
-		- Start time, end time, and duration
-		- Input
-			- <parameter name> : <object>
-			- <parameter name> : <object>
-			...
-		- Output
-			- <output object 1>
-			- <output object 2>
-			...
-	- Activity execution instance 2
-	...
+    - Activity execution instance 1
+        - Activity name, start time, end time, duration, etc.
+        - Input
+            - <parameter name> : <object>
+            - <parameter name> : <object>
+            ...
+        - Output
+            - <output object 1>
+            - <output object 2>
+            ...
+    - Activity execution instance 2
+    ...
+
+
+.NOTES
+
+The following modules are required:
+        AzureRm.Automation
+        PowerShellCookbook
+Run the following commands to install these modules from the PowerShell gallery:
+        Install-Module -Name AzureRM.Automation
+        Install-Module -Name PowerShellCookbook
+
+Make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet) before invoking Show-GraphRunbookActivityTraces.
+
+In the Azure Portal, enable activity-level tracing *and* verbose logging for a graphical runbook:
+    - Runbook Settings -> Logging and tracing
+        - Logging verbose records: *On*
+        - Trace level: *Basic* or *Detailed*
 
 
 .PARAMETER ResourceGroupName
