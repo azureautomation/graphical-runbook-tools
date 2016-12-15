@@ -153,6 +153,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
             Mandatory = $true,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true)]
+        [Alias('Id')]
         [guid]
         $JobId,
 
