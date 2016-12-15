@@ -12,6 +12,8 @@ function ExpectEvent($GraphTraceRecord, $ExpectedEventType, $ExpectedActivityNam
 
 function GetGraphTraces($ResourceGroupName, $AutomationAccountName, $JobId)
 {
+    Write-Verbose "Retrieving traces for job $JobId..."
+
     $GraphTracePrefix = "GraphTrace:"
 
     Get-AzureRmAutomationJobOutput `
@@ -153,10 +155,17 @@ Azure Automation: https://azure.microsoft.com/services/automation
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)]
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = "ByJobId")]
         [Alias('Id')]
         [guid]
         $JobId,
+
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = "ByRunbookName")]
+        [string]
+        $RunbookName,
 
         [Parameter(Mandatory = $true)]
         [string]
@@ -169,7 +178,35 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
     process
     {
-        $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
+        switch ($PSCmdlet.ParameterSetName)
+        {
+            "ByJobId"
+            {
+                $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
+            }
+
+            "ByRunbookName"
+            {
+                Write-Verbose "Looking for the latest job for runbook $RunbookName..."
+
+                $Job = Get-AzureRmAutomationJob `
+                            -RunbookName $RunbookName `
+                            -ResourceGroupName $ResourceGroupName `
+                            -AutomationAccountName $AutomationAccountName |
+                    sort StartTime -Descending |
+                    select -First 1
+
+                if ($Job)
+                {
+                    $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $Job.JobId
+                }
+                else
+                {
+                    Write-Error -Message "No job found for runbook $RunbookName."
+                }
+            }
+        }
+
         $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
         if ($ActivityExecutionInstances)
         {
