@@ -70,30 +70,115 @@ function GetActivityExecutionInstances($GraphTraces)
     }
 }
 
-function Show-GraphRunbookActivityTraces(
-    [Parameter(Mandatory = $true)]
-    [string]
-    $ResourceGroupName,
-
-    [Parameter(Mandatory = $true)]
-    [string]
-    $AutomationAccountName,
-
-    [Parameter(Mandatory = $true)]
-    [string]
-    $JobId
-)
+function Show-GraphRunbookActivityTraces
 {
-    $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
-    $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
-    if ($ActivityExecutionInstances)
+<#
+
+.SYNOPSIS
+
+Shows graphical runbook activity traces for an Azure Automation job
+
+
+.DESCRIPTION
+
+Graphical runbook activity tracing data is extremely helpful when testing and troubleshooting graphical runbooks in Azure Automation. Specifically, it can help the user determine the execution order of activities, any activity start and finish time, and any activity input and output data. Azure Automation saves this data encoded in JSON in the job Verbose stream.
+
+Even though this data is very valuable, it may not be directly human-readable in the raw format, especially when activities input and output large and complex objects. Show-GraphRunbookActivityTraces command simplifies this task. It retrieves activity tracing data from a specified Azure Automation job, then parses and displays this data in a user-friendly tree structure:
+
+    - Activity execution instance 1
+        - Activity name, start time, end time, duration, etc.
+        - Input
+            - <parameter name> : <object>
+            - <parameter name> : <object>
+            ...
+        - Output
+            - <output object 1>
+            - <output object 2>
+            ...
+    - Activity execution instance 2
+    ...
+
+
+.NOTES
+
+The following modules are required:
+        AzureRm.Automation
+        PowerShellCookbook
+Run the following commands to install these modules from the PowerShell gallery:
+        Install-Module -Name AzureRM.Automation
+        Install-Module -Name PowerShellCookbook
+
+Make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet) before invoking Show-GraphRunbookActivityTraces.
+
+In the Azure Portal, enable activity-level tracing *and* verbose logging for a graphical runbook:
+    - Runbook Settings -> Logging and tracing
+        - Logging verbose records: *On*
+        - Trace level: *Basic* or *Detailed*
+
+
+.PARAMETER ResourceGroupName
+
+Azure Resource Group name
+
+
+.PARAMETER AutomationAccountName
+
+Azure Automation Account name
+
+
+.PARAMETER JobId
+
+Azure Automation graphical runbook job ID
+
+
+.EXAMPLE
+
+Show-GraphRunbookActivityTraces -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -JobId b15d38a1-ddea-49d1-bd90-407f66f282ef
+
+
+.LINK
+
+Source code: https://github.com/azureautomation/graphical-runbook-tools
+
+
+.LINK
+
+Azure Automation: https://azure.microsoft.com/services/automation
+
+#>
+    [CmdletBinding()]
+
+    param(
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
+        [Alias('Id')]
+        [guid]
+        $JobId,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]
+        $AutomationAccountName
+    )
+
+    process
     {
-        Show-Object -InputObject $ActivityExecutionInstances
-    }
-    else
-    {
-        Write-Error -Message ('No activity traces found. Make sure activity tracing and ' +
-                              'logging Verbose stream are enabled in the runbook configuration.')
+        $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
+        $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
+        if ($ActivityExecutionInstances)
+        {
+            Show-Object -InputObject $ActivityExecutionInstances
+        }
+        else
+        {
+            Write-Error -Message ('No activity traces found. Make sure activity tracing and ' +
+                                  'logging Verbose stream are enabled in the runbook configuration.')
+        }
     }
 }
 
