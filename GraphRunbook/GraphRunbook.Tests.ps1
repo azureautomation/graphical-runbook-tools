@@ -89,14 +89,27 @@ InModuleScope $sut {
         Context "When Graph Runbook activity traces exist and runbook name is known" {
             $TestRunbookName = 'TestRunbookName'
 
+            Mock Get-AzureRmAutomationJob -Verifiable `
+                -ParameterFilter {
+                    ($ResourceGroupName -eq $TestResourceGroup) -and
+                    ($AutomationAccountName -eq $TestAutomationAccount) -and
+                    ($RunbookName -eq $TestRunbookName)
+                } `
+                -MockWith {
+                    $LatestJobStartTime = Get-Date
+                    New-Object PSObject -Property @{ StartTime = $LatestJobStartTime - [System.TimeSpan]::FromSeconds(1); JobId = New-Guid }
+                    New-Object PSObject -Property @{ StartTime = $LatestJobStartTime; JobId = $TestJobId }
+                    New-Object PSObject -Property @{ StartTime = $LatestJobStartTime - [System.TimeSpan]::FromSeconds(2); JobId = New-Guid }
+                }
+
             Mock Get-AzureRmAutomationJobOutput -Verifiable `
                 -ParameterFilter {
                     ($ResourceGroupName -eq $TestResourceGroup) -and
                     ($AutomationAccountName -eq $TestAutomationAccount) -and
-                    ($JobId -eq $TestJobId) -and
                     ($Stream -eq 'Verbose')
                 } `
                 -MockWith {
+                    $JobId | Should be $TestJobId
                     1..6
                 }
 
