@@ -11,19 +11,16 @@ InModuleScope $sut {
         $TestResourceGroup = 'TestResourceGroupName'
         $TestAutomationAccount = 'TestAccountName'
 
-        function CreateTestJobOutputRecord($Id)
-        {
-            switch ($Id) {
-                1 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityStart",Time:"2016-11-23 23:04"}' } } }
-                2 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityInput",Time:"2016-11-23 23:05",Values:{Data:{Input1:"A",Input2:"B"}}}' } } }
-                3 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityOutput",Time:"2016-11-23 23:05"}' } } }
-                4 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityEnd",Time:"2016-11-23 23:06",DurationSeconds:1.2}' } } }
-
-                5 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityStart",Time:"2016-11-23 23:09"}' } } }
-                6 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityOutput",Time:"2016-11-23 23:12",Values:{Data:[2,7,1]}}' } } }
-                7 { @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityEnd",Time:"2016-11-23 23:13",DurationSeconds:7}' } } }
-            }
-        }
+        $TestJobOutputRecords =
+            @(
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityStart",Time:"2016-11-23 23:04"}' } },
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityInput",Time:"2016-11-23 23:05",Values:{Data:{Input1:"A",Input2:"B"}}}' } },
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityOutput",Time:"2016-11-23 23:05"}' } },
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityEnd",Time:"2016-11-23 23:06",DurationSeconds:1.2}' } },
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityStart",Time:"2016-11-23 23:09"}' } },
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityOutput",Time:"2016-11-23 23:12",Values:{Data:[2,7,1]}}' } },
+                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityEnd",Time:"2016-11-23 23:13",DurationSeconds:7}' } }
+            )
 
         function VerifyShowObjectInput($InputObject)
         {
@@ -59,7 +56,7 @@ InModuleScope $sut {
                     ($Stream -eq 'Verbose')
                 } `
                 -MockWith {
-                    1..7
+                    0..($TestJobOutputRecords.Length - 1)
                 }
 
             function Get-AzureRmAutomationJobOutputRecord {
@@ -67,7 +64,7 @@ InModuleScope $sut {
                 param ([Parameter(ValueFromPipeline = $true)] $Id)
 
                 process {
-                    CreateTestJobOutputRecord -Id $Id
+                    $TestJobOutputRecords[$Id]
                 }
             }
 
@@ -109,8 +106,9 @@ InModuleScope $sut {
                     ($Stream -eq 'Verbose')
                 } `
                 -MockWith {
-                    $JobId | Should be $TestJobId
-                    1..7
+                    $JobId | Should be $TestJobId > $null
+
+                    0..($TestJobOutputRecords.Length - 1)
                 }
 
             function Get-AzureRmAutomationJobOutputRecord {
@@ -118,7 +116,7 @@ InModuleScope $sut {
                 param ([Parameter(ValueFromPipeline = $true)] $Id)
 
                 process {
-                    CreateTestJobOutputRecord -Id $Id
+                    $TestJobOutputRecords[$Id]
                 }
             }
 
