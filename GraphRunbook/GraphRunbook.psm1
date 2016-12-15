@@ -151,7 +151,8 @@ Azure Automation: https://azure.microsoft.com/services/automation
     param(
         [Parameter(
             Mandatory = $true,
-            ValueFromPipeline = $true)]
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [guid]
         $JobId,
 
