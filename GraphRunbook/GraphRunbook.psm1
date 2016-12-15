@@ -72,6 +72,18 @@ function GetActivityExecutionInstances($GraphTraces)
     }
 }
 
+function GetLatestJobByRunbookName($ResourceGroupName, $AutomationAccountName, $RunbookName)
+{
+    Write-Verbose "Looking for the latest job for runbook $RunbookName..."
+
+    Get-AzureRmAutomationJob `
+                -RunbookName $RunbookName `
+                -ResourceGroupName $ResourceGroupName `
+                -AutomationAccountName $AutomationAccountName |
+        sort StartTime -Descending |
+        select -First 1
+}
+
 function Show-GraphRunbookActivityTraces
 {
 <#
@@ -187,14 +199,10 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
             "ByRunbookName"
             {
-                Write-Verbose "Looking for the latest job for runbook $RunbookName..."
-
-                $Job = Get-AzureRmAutomationJob `
+                $Job = GetLatestJobByRunbookName `
                             -RunbookName $RunbookName `
                             -ResourceGroupName $ResourceGroupName `
-                            -AutomationAccountName $AutomationAccountName |
-                    sort StartTime -Descending |
-                    select -First 1
+                            -AutomationAccountName $AutomationAccountName
 
                 if ($Job)
                 {
