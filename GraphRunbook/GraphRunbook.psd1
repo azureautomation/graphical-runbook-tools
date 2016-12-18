@@ -30,7 +30,7 @@ CompanyName = 'Microsoft'
 Copyright = '(c) 2016 Microsoft. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'Helps author and debug graphical runbooks in Azure Automation'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '3.0'
