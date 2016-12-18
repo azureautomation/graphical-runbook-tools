@@ -206,7 +206,8 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
                 if ($Job)
                 {
-                    $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $Job.JobId
+                    $JobId = $Job.JobId
+                    $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
                 }
                 else
                 {
@@ -218,7 +219,12 @@ Azure Automation: https://azure.microsoft.com/services/automation
         $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
         if ($ActivityExecutionInstances)
         {
-            Show-Object -InputObject $ActivityExecutionInstances
+            $ObjectToShow = New-Object PsObject -Property @{
+                'Job ID' = $JobId
+                'Activity execution instances' = $ActivityExecutionInstances
+            }
+
+            Show-Object -InputObject $ObjectToShow
         }
         else
         {

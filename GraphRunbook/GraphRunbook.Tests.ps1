@@ -25,26 +25,32 @@ InModuleScope $sut {
         function VerifyShowObjectInput($InputObject)
         {
             $InputObject | Should not be $null
-            $InputObject | Measure-Object | % Count | Should be 2
+            $InputObject | Measure-Object | % Count | Should be 1
 
-            $InputObject[0].Activity | Should be 'Activity1'
-            $InputObject[0].Start | Should be (Get-Date '2016-11-23 23:04')
-            $InputObject[0].End | Should be (Get-Date '2016-11-23 23:06')
-            $InputObject[0].Duration | Should be ([System.TimeSpan]::FromSeconds(1.2))
-            $InputObject[0].Input | Should not be $null
-            $InputObject[0].Input.Input1 | Should be "A"
-            $InputObject[0].Input.Input2 | Should be "B"
-            $InputObject[0].Output | Should be $null
+            $InputObject.'Job ID' | Should be $TestJobId
 
-            $InputObject[1].Activity | Should be 'Activity2'
-            $InputObject[1].Start | Should be (Get-Date '2016-11-23 23:09')
-            $InputObject[1].End | Should be (Get-Date '2016-11-23 23:13')
-            $InputObject[1].Duration | Should be ([System.TimeSpan]::FromSeconds(7))
-            $InputObject[1].Input | Should be $null
-            $InputObject[1].Output | Measure-Object | % Count | Should be 3
-            $InputObject[1].Output[0] | Should be 2
-            $InputObject[1].Output[1] | Should be 7
-            $InputObject[1].Output[2] | Should be 1
+            $ActivityExecutionInstances = $InputObject.'Activity execution instances'
+
+            $ActivityExecutionInstances | Measure-Object | % Count | Should be 2
+
+            $ActivityExecutionInstances[0].Activity | Should be 'Activity1'
+            $ActivityExecutionInstances[0].Start | Should be (Get-Date '2016-11-23 23:04')
+            $ActivityExecutionInstances[0].End | Should be (Get-Date '2016-11-23 23:06')
+            $ActivityExecutionInstances[0].Duration | Should be ([System.TimeSpan]::FromSeconds(1.2))
+            $ActivityExecutionInstances[0].Input | Should not be $null
+            $ActivityExecutionInstances[0].Input.Input1 | Should be "A"
+            $ActivityExecutionInstances[0].Input.Input2 | Should be "B"
+            $ActivityExecutionInstances[0].Output | Should be $null
+
+            $ActivityExecutionInstances[1].Activity | Should be 'Activity2'
+            $ActivityExecutionInstances[1].Start | Should be (Get-Date '2016-11-23 23:09')
+            $ActivityExecutionInstances[1].End | Should be (Get-Date '2016-11-23 23:13')
+            $ActivityExecutionInstances[1].Duration | Should be ([System.TimeSpan]::FromSeconds(7))
+            $ActivityExecutionInstances[1].Input | Should be $null
+            $ActivityExecutionInstances[1].Output | Measure-Object | % Count | Should be 3
+            $ActivityExecutionInstances[1].Output[0] | Should be 2
+            $ActivityExecutionInstances[1].Output[1] | Should be 7
+            $ActivityExecutionInstances[1].Output[2] | Should be 1
         }
 
         Context "When Graph Runbook activity traces exist and job ID is known" {
