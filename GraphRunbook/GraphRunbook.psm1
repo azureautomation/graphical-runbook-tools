@@ -224,7 +224,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
                 'Activity execution instances' = $ActivityExecutionInstances
             }
 
-            Show-Object -InputObject $ObjectToShow
+            Show-Object -InputObject @($ObjectToShow)
         }
         else
         {
