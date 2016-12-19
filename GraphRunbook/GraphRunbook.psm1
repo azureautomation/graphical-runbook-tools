@@ -234,6 +234,22 @@ Azure Automation: https://azure.microsoft.com/services/automation
     }
 }
 
+function Get-ActivityText([Orchestrator.GraphRunbook.Model.Activity]$Activity)
+{
+    "    @{`r`n        Name = '$($Activity.Name)'`r`n    }`r`n"
+}
+
+function Get-ActivitiesText([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook)
+{
+    $Result = ''
+    foreach ($Activity in $Runbook.Activities)
+    {
+        $Result += "$(Get-ActivityText $Activity)"
+    }
+
+    $Result
+}
+
 function Convert-GraphRunbookToPsd1
 {
     param(
@@ -244,7 +260,7 @@ function Convert-GraphRunbookToPsd1
     $Result = "@{`r`n`r`n"
     $Result += "Comments = @(`r`n)`r`n`r`n"
     $Result += "OutputTypes = @(`r`n)`r`n`r`n"
-    $Result += "Activities = @(`r`n)`r`n`r`n"
+    $Result += "Activities = @(`r`n$(Get-ActivitiesText $Runbook))`r`n`r`n"
     $Result += "Links = @(`r`n)`r`n`r`n"
     $Result += "}`r`n"
 

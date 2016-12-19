@@ -212,6 +212,9 @@ InModuleScope $sut {
 
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity name'
+            $Runbook.AddActivity($Activity)
+
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
@@ -225,6 +228,9 @@ OutputTypes = @(
 )
 
 Activities = @(
+    @{
+        Name = 'Activity name'
+    }
 )
 
 Links = @(
