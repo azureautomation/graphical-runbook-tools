@@ -234,4 +234,15 @@ Azure Automation: https://azure.microsoft.com/services/automation
     }
 }
 
+function Convert-GraphRunbookToPsd1
+{
+    param(
+        [Parameter(Mandatory = $true)]
+        $Runbook
+    )
+
+    ''
+}
+
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
+Export-ModuleMember -Function Convert-GraphRunbookToPsd1

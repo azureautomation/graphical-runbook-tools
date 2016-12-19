@@ -204,4 +204,19 @@ InModuleScope $sut {
             }
         }
     }
+
+    Describe "Convert-GraphRunbookToPsd1" {
+        Context "When GraphRunbook provided" {
+            $AuthoringSdkDir = 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
+            Add-Type -Path $AuthoringSdkDir\Orchestrator.GraphRunbook.Model.dll
+
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be ''
+            }
+        }
+    }
 }
