@@ -215,7 +215,24 @@ InModuleScope $sut {
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
-                $Text | Should be ''
+                $Text | Should be @"
+@{
+
+Comments = @(
+)
+
+OutputTypes = @(
+)
+
+Activities = @(
+)
+
+Links = @(
+)
+
+}
+
+"@
             }
         }
     }

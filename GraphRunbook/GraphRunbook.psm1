@@ -238,10 +238,17 @@ function Convert-GraphRunbookToPsd1
 {
     param(
         [Parameter(Mandatory = $true)]
-        $Runbook
+        [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
     )
 
-    ''
+    $Result = "@{`r`n`r`n"
+    $Result += "Comments = @(`r`n)`r`n`r`n"
+    $Result += "OutputTypes = @(`r`n)`r`n`r`n"
+    $Result += "Activities = @(`r`n)`r`n`r`n"
+    $Result += "Links = @(`r`n)`r`n`r`n"
+    $Result += "}`r`n"
+
+    $Result
 }
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
