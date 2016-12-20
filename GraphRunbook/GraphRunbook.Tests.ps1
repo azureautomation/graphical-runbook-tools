@@ -219,6 +219,8 @@ InModuleScope $sut {
             $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
             $CommandActivityType.CommandName = 'Get-Date'
             $ActivityB = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList 'Activity B', $CommandActivityType
+            $ActivityB.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $ActivityB.Parameters.Add("Parameter1", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 1'))
             $Runbook.AddActivity($ActivityB)
 
             It "Converts GraphRunbook to text" {
@@ -243,6 +245,9 @@ Activities = @(
         Name = 'Activity B'
         Type = 'Command'
         CommandName = 'Get-Date'
+        Parameters = @{
+            Parameter1 = 'Value 1'
+        }
     }
 )
 

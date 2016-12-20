@@ -296,8 +296,24 @@ function Transform-Value($IndentLevel, $Value)
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value 'Command')`r`n"
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name CommandName -Value $Value.CommandType.CommandName)`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Parameters -Value $Value.Parameters)`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
+    {
+        $Result = "@{`r`n"
+        $NextIndentLevel = $IndentLevel + 1
+        foreach ($Entry in $Value.GetEnumerator())
+        {
+            $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+        }
+        $Result += "$(Get-Indent $IndentLevel)}"
+        $Result
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor])
+    {
+        Transform-Value -IndentLevel $IndentLevel -Value $Value.Value
     }
     else
     {
