@@ -337,7 +337,10 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{ SourceType = 'ActivityOutput'; Activity = $Value.ActivityName })
+        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+            SourceType = 'ActivityOutput'
+            Activity = $Value.ActivityName
+        })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
