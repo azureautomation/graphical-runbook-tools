@@ -281,7 +281,8 @@ function Transform-Value($IndentLevel, $Value)
 {
     if ($Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
         $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]] -or
-        $Value -is [System.Collections.Generic.List`1[System.String]])
+        $Value -is [System.Collections.Generic.List`1[System.String]] -or
+        $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Comment]])
     {
         if ($Value.Count -eq 0)
         {
@@ -359,6 +360,13 @@ function Transform-Value($IndentLevel, $Value)
     {
         Transform-Value -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment])
+    {
+        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+            Name = $Value.Name
+            Text = $Value.Text
+        })
+    }
     else
     {
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"
@@ -378,7 +386,8 @@ function Convert-GraphRunbookToPsd1
     )
 
     $Result = "@{`r`n`r`n"
-    $Result += "Comments = @(`r`n)`r`n`r`n"
+    $Result += Transform-NamedValue -IndentLevel 0 -Name Comments -Value $Runbook.Comments
+    $Result += "`r`n`r`n"
     $Result += Transform-NamedValue -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
     $Result += "`r`n`r`n"
     $Result += Transform-NamedValue -IndentLevel 0 -Name Activities -Value $Runbook.Activities

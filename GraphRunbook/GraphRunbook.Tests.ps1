@@ -212,6 +212,13 @@ InModuleScope $sut {
 
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
+            $Comment1 = New-Object Orchestrator.GraphRunbook.Model.Comment -ArgumentList 'First comment'
+            $Comment1.Text = 'First comment text'
+            $Runbook.AddComment($Comment1)
+            $Comment2 = New-Object Orchestrator.GraphRunbook.Model.Comment -ArgumentList 'Second comment'
+            $Comment2.Text = 'Second comment text'
+            $Runbook.AddComment($Comment2)
+
             $Runbook.AddOutputType('First output type');
             $Runbook.AddOutputType('Second output type');
 
@@ -238,6 +245,14 @@ InModuleScope $sut {
 @{
 
 Comments = @(
+    @{
+        Name = 'First comment'
+        Text = 'First comment text'
+    }
+    @{
+        Name = 'Second comment'
+        Text = 'Second comment text'
+    }
 )
 
 OutputTypes = @(
