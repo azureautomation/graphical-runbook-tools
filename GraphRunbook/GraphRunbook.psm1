@@ -271,7 +271,7 @@ function ConvertDictionaryToPsd($IndentLevel, $Value)
     $NextIndentLevel = $IndentLevel + 1
     foreach ($Entry in $Value.GetEnumerator())
     {
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+        $Result += "$(ConvertNamedValueToPsd -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
     }
     $Result += "$(Get-Indent $IndentLevel)}"
     $Result
@@ -370,7 +370,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
     }
 }
 
-function Transform-NamedValue($IndentLevel, $Name, $Value)
+function ConvertNamedValueToPsd($IndentLevel, $Name, $Value)
 {
     "$(Get-Indent $IndentLevel)$Name = $(ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value)"
 }
@@ -383,13 +383,13 @@ function Convert-GraphRunbookToPsd1
     )
 
     $Result = "@{`r`n`r`n"
-    $Result += Transform-NamedValue -IndentLevel 0 -Name Comments -Value $Runbook.Comments
+    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Comments -Value $Runbook.Comments
     $Result += "`r`n`r`n"
-    $Result += Transform-NamedValue -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
+    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
     $Result += "`r`n`r`n"
-    $Result += Transform-NamedValue -IndentLevel 0 -Name Activities -Value $Runbook.Activities
+    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Activities -Value $Runbook.Activities
     $Result += "`r`n`r`n"
-    $Result += Transform-NamedValue -IndentLevel 0 -Name Links -Value $Runbook.Links
+    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Links -Value $Runbook.Links
     $Result += "`r`n`r`n"
     $Result += "}`r`n"
 
