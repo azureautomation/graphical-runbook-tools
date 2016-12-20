@@ -308,13 +308,11 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
     {
-        $Result = "@{`r`n"
-        $NextIndentLevel = $IndentLevel + 1
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Type -Value 'Code')`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Process -Value ([scriptblock]::Create($Value.Process)))`r`n"
-        $Result += "$(Get-Indent $IndentLevel)}"
-        $Result
+        Transform-Hashtable -IndentLevel $IndentLevel -Value @{
+            Name = $Value.Name
+            Type = 'Code'
+            Process = [scriptblock]::Create($Value.Process)
+        }
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
     {
