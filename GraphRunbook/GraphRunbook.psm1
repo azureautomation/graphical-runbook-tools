@@ -265,7 +265,7 @@ function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
     $Result
 }
 
-function Transform-Hashtable($IndentLevel, $Value)
+function ConvertDictionaryToPsd($IndentLevel, $Value)
 {
     $Result = "@{`r`n"
     $NextIndentLevel = $IndentLevel + 1
@@ -303,15 +303,15 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [hashtable])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [System.Collections.Specialized.OrderedDictionary])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Type = 'Code'
             Process = [scriptblock]::Create($Value.Process)
@@ -319,7 +319,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Type = 'Command'
             CommandName = $Value.CommandType.CommandName
@@ -328,7 +328,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor])
     {
@@ -336,7 +336,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'ActivityOutput'
             Activity = $Value.ActivityName
         })
@@ -346,7 +346,7 @@ function Transform-Value($IndentLevel, $Value)
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
         $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
 
-        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             From = $FromActivity.Name
             To = $ToActivity.Name
             Type = $Value.LinkType
@@ -359,7 +359,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Text = $Value.Text
         })
