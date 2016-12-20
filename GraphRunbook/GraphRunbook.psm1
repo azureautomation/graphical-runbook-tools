@@ -277,7 +277,7 @@ function ConvertDictionaryToPsd($IndentLevel, $Value)
     $Result
 }
 
-function Transform-Value($IndentLevel, $Value)
+function ConvertValueToPsd($IndentLevel, $Value)
 {
     if ($Value -is [System.Collections.IList])
     {
@@ -291,7 +291,7 @@ function Transform-Value($IndentLevel, $Value)
             $NextIndentLevel = $IndentLevel + 1
             foreach ($Item in $Value)
             {
-                $Result += "$(Get-Indent $NextIndentLevel)$(Transform-Value -IndentLevel $NextIndentLevel -Value $Item)`r`n"
+                $Result += "$(Get-Indent $NextIndentLevel)$(ConvertValueToPsd -IndentLevel $NextIndentLevel -Value $Item)`r`n"
             }
             $Result += "$(Get-Indent $IndentLevel))"
             $Result
@@ -332,7 +332,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor])
     {
-        Transform-Value -IndentLevel $IndentLevel -Value $Value.Value
+        ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value.Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
     {
@@ -355,7 +355,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition])
     {
-        Transform-Value -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+        ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment])
     {
@@ -372,7 +372,7 @@ function Transform-Value($IndentLevel, $Value)
 
 function Transform-NamedValue($IndentLevel, $Name, $Value)
 {
-    "$(Get-Indent $IndentLevel)$Name = $(Transform-Value -IndentLevel $IndentLevel -Value $Value)"
+    "$(Get-Indent $IndentLevel)$Name = $(ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value)"
 }
 
 function Convert-GraphRunbookToPsd1
