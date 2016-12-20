@@ -344,16 +344,15 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
-        $Result = "@{`r`n"
-        $NextIndentLevel = $IndentLevel + 1
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name From -Value ($FromActivity.Name))`r`n"
         $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name To -Value ($ToActivity.Name))`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Type -Value $Value.LinkType)`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Condition -Value $Value.Condition)`r`n"
-        $Result += "$(Get-Indent $IndentLevel)}"
-        $Result
+
+        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+            From = $FromActivity.Name
+            To = $ToActivity.Name
+            Type = $Value.LinkType
+            Condition = $Value.Condition
+        })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition])
     {
