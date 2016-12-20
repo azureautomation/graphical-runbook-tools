@@ -284,6 +284,7 @@ function Transform-Value($IndentLevel, $Value)
         $Result = "@{`r`n"
         $NextIndentLevel = $IndentLevel + 1
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Process -Value "{ $($Value.Process) }")`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
     }
