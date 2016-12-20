@@ -212,9 +212,13 @@ InModuleScope $sut {
 
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
-            $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity name'
-            $Activity.Process = "'Hello'"
-            $Runbook.AddActivity($Activity)
+            $ActivityA = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity A'
+            $ActivityA.Process = "'Hello'"
+            $Runbook.AddActivity($ActivityA)
+
+            $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
+            $ActivityB.Process = "'Hello 2'"
+            $Runbook.AddActivity($ActivityB)
 
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
@@ -230,9 +234,14 @@ OutputTypes = @(
 
 Activities = @(
     @{
-        Name = 'Activity name'
+        Name = 'Activity A'
         Type = 'Code'
         Process = { 'Hello' }
+    }
+    @{
+        Name = 'Activity B'
+        Type = 'Code'
+        Process = { 'Hello 2' }
     }
 )
 
