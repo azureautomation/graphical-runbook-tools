@@ -289,6 +289,16 @@ function Transform-Value($IndentLevel, $Value)
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
+    {
+        $Result = "@{`r`n"
+        $NextIndentLevel = $IndentLevel + 1
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value 'Command')`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name CommandName -Value $Value.CommandType.CommandName)`r`n"
+        $Result += "$(Get-Indent $IndentLevel)}"
+        $Result
+    }
     else
     {
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"

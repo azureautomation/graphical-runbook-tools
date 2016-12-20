@@ -216,8 +216,9 @@ InModuleScope $sut {
             $ActivityA.Process = "'Hello'"
             $Runbook.AddActivity($ActivityA)
 
-            $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
-            $ActivityB.Process = "'Hello 2'"
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = 'Get-Date'
+            $ActivityB = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList 'Activity B', $CommandActivityType
             $Runbook.AddActivity($ActivityB)
 
             It "Converts GraphRunbook to text" {
@@ -240,8 +241,8 @@ Activities = @(
     }
     @{
         Name = 'Activity B'
-        Type = 'Code'
-        Process = { 'Hello 2' }
+        Type = 'Command'
+        CommandName = 'Get-Date'
     }
 )
 
