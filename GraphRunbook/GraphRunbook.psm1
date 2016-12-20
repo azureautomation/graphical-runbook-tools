@@ -279,10 +279,7 @@ function Transform-Hashtable($IndentLevel, $Value)
 
 function Transform-Value($IndentLevel, $Value)
 {
-    if ($Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
-        $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]] -or
-        $Value -is [System.Collections.Generic.List`1[System.String]] -or
-        $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Comment]])
+    if ($Value -is [System.Collections.IList])
     {
         if ($Value.Count -eq 0)
         {
