@@ -225,6 +225,7 @@ InModuleScope $sut {
             $Runbook.AddActivity($ActivityB)
 
             $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
+            $LinkAtoB.Condition = '$ActivityOutput[''A''].Count -gt 0'
             $Runbook.AddLink($LinkAtoB)
 
             It "Converts GraphRunbook to text" {
@@ -264,6 +265,7 @@ Links = @(
         From = 'Activity A'
         To = 'Activity B'
         Type = 'Sequence'
+        Condition = { `$ActivityOutput['A'].Count -gt 0 }
     }
 )
 

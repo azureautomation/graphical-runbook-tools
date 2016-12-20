@@ -350,8 +350,13 @@ function Transform-Value($IndentLevel, $Value)
         $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name To -Value ($ToActivity.Name))`r`n"
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value $Value.LinkType)`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Condition -Value $Value.Condition)`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition])
+    {
+        Transform-Value -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
     }
     else
     {
