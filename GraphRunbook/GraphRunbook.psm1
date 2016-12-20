@@ -265,7 +265,7 @@ function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
     $Result
 }
 
-function Transform-Hashtable($IndentLevel, [hashtable]$Value)
+function Transform-Hashtable($IndentLevel, $Value)
 {
     $Result = "@{`r`n"
     $NextIndentLevel = $IndentLevel + 1
@@ -306,24 +306,26 @@ function Transform-Value($IndentLevel, $Value)
     {
         Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
     }
+    elseif ($Value -is [System.Collections.Specialized.OrderedDictionary])
+    {
+        Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value @{
+        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Type = 'Code'
             Process = [scriptblock]::Create($Value.Process)
-        }
+        })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
     {
-        $Result = "@{`r`n"
-        $NextIndentLevel = $IndentLevel + 1
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Type -Value 'Command')`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name CommandName -Value $Value.CommandType.CommandName)`r`n"
-        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Parameters -Value $Value.Parameters)`r`n"
-        $Result += "$(Get-Indent $IndentLevel)}"
-        $Result
+        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{
+            Name = $Value.Name
+            Type = 'Command'
+            CommandName = $Value.CommandType.CommandName
+            Parameters = $Value.Parameters
+        })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
     {
@@ -335,7 +337,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
     {
-        Transform-Hashtable -IndentLevel $IndentLevel -Value @{ SourceType = 'ActivityOutput'; Activity = $Value.ActivityName }
+        Transform-Hashtable -IndentLevel $IndentLevel -Value ([ordered]@{ SourceType = 'ActivityOutput'; Activity = $Value.ActivityName })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
