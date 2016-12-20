@@ -231,6 +231,7 @@ OutputTypes = @(
 Activities = @(
     @{
         Name = 'Activity name'
+        Type = 'Code'
         Process = { 'Hello' }
     }
 )

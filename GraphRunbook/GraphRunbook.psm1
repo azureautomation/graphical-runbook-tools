@@ -257,11 +257,7 @@ function Get-Indent($IndentLevel)
 
 function Transform-Value($IndentLevel, $Value)
 {
-    if ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.ActivityName])
-    {
-        "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value))'"
-    }
-    elseif ($Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]])
+    if ($Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]])
     {
         if ($Value.Count -eq 0)
         {
@@ -279,18 +275,23 @@ function Transform-Value($IndentLevel, $Value)
             $Result
         }
     }
+    elseif ($Value -is [scriptblock])
+    {
+        "{ $Value }"
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
     {
         $Result = "@{`r`n"
         $NextIndentLevel = $IndentLevel + 1
         $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Process -Value "{ $($Value.Process) }")`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value 'Code')`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Process -Value ([scriptblock]::Create($Value.Process)))`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
     }
     else
     {
-        $Value.ToString()
+        "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"
     }
 }
 
