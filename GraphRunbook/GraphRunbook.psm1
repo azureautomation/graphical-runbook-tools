@@ -280,7 +280,8 @@ function Transform-Hashtable($IndentLevel, $Value)
 function Transform-Value($IndentLevel, $Value)
 {
     if ($Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
-        $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]])
+        $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]] -or
+        $Value -is [System.Collections.Generic.List`1[System.String]])
     {
         if ($Value.Count -eq 0)
         {
@@ -378,7 +379,8 @@ function Convert-GraphRunbookToPsd1
 
     $Result = "@{`r`n`r`n"
     $Result += "Comments = @(`r`n)`r`n`r`n"
-    $Result += "OutputTypes = @(`r`n)`r`n`r`n"
+    $Result += Transform-NamedValue -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
+    $Result += "`r`n`r`n"
     $Result += Transform-NamedValue -IndentLevel 0 -Name Activities -Value $Runbook.Activities
     $Result += "`r`n`r`n"
     $Result += Transform-NamedValue -IndentLevel 0 -Name Links -Value $Runbook.Links

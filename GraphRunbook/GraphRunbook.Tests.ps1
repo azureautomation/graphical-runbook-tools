@@ -212,6 +212,9 @@ InModuleScope $sut {
 
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
+            $Runbook.AddOutputType('First output type');
+            $Runbook.AddOutputType('Second output type');
+
             $ActivityA = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity A'
             $ActivityA.Process = "'Hello'"
             $Runbook.AddActivity($ActivityA)
@@ -238,6 +241,8 @@ Comments = @(
 )
 
 OutputTypes = @(
+    'First output type'
+    'Second output type'
 )
 
 Activities = @(
