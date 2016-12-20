@@ -224,6 +224,9 @@ InModuleScope $sut {
             $ActivityB.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 2'))
             $Runbook.AddActivity($ActivityB)
 
+            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
+            $Runbook.AddLink($LinkAtoB)
+
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
@@ -254,6 +257,11 @@ Activities = @(
 )
 
 Links = @(
+    @{
+        From = 'Activity A'
+        To = 'Activity B'
+        Type = 'Sequence'
+    }
 )
 
 }

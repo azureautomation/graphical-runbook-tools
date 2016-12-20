@@ -255,9 +255,20 @@ function Get-Indent($IndentLevel)
     ' ' * $IndentLevel * 4
 }
 
+function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId)
+{
+    $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
+    if (-not $Result)
+    {
+        throw "Cannot find activity by entity ID: $ActivityId"
+    }
+    $Result
+}
+
 function Transform-Value($IndentLevel, $Value)
 {
-    if ($Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]])
+    if ($Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
+        $Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]])
     {
         if ($Value.Count -eq 0)
         {
@@ -315,6 +326,18 @@ function Transform-Value($IndentLevel, $Value)
     {
         Transform-Value -IndentLevel $IndentLevel -Value $Value.Value
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
+    {
+        $Result = "@{`r`n"
+        $NextIndentLevel = $IndentLevel + 1
+        $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name From -Value ($FromActivity.Name))`r`n"
+        $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name To -Value ($ToActivity.Name))`r`n"
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value $Value.LinkType)`r`n"
+        $Result += "$(Get-Indent $IndentLevel)}"
+        $Result
+    }
     else
     {
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"
@@ -338,7 +361,8 @@ function Convert-GraphRunbookToPsd1
     $Result += "OutputTypes = @(`r`n)`r`n`r`n"
     $Result += Convert-ToPsd1 -IndentLevel 0 -Name Activities -Value $Runbook.Activities
     $Result += "`r`n`r`n"
-    $Result += "Links = @(`r`n)`r`n`r`n"
+    $Result += Convert-ToPsd1 -IndentLevel 0 -Name Links -Value $Runbook.Links
+    $Result += "`r`n`r`n"
     $Result += "}`r`n"
 
     $Result
