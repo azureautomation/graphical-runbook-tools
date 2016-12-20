@@ -267,8 +267,8 @@ function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
 
 function Transform-Value($IndentLevel, $Value)
 {
-    if ($Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
-        $Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]])
+    if ($Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
+        $Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Link]])
     {
         if ($Value.Count -eq 0)
         {
