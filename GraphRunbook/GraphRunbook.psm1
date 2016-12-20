@@ -250,6 +250,54 @@ function Get-ActivitiesText([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbo
     $Result
 }
 
+function Get-Indent($IndentLevel)
+{
+    ' ' * $IndentLevel * 4
+}
+
+function Transform-Value($IndentLevel, $Value)
+{
+    if ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.ActivityName])
+    {
+        "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value))'"
+    }
+    elseif ($Value.GetType() -eq [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]])
+    {
+        if ($Value.Count -eq 0)
+        {
+            '@()'
+        }
+        else
+        {
+            $Result = "@(`r`n"
+            $NextIndentLevel = $IndentLevel + 1
+            foreach ($Item in $Value)
+            {
+                $Result += "$(Get-Indent $NextIndentLevel)$(Transform-Value -IndentLevel $NextIndentLevel -Value $Item)`r`n"
+            }
+            $Result += "$(Get-Indent $IndentLevel))"
+            $Result
+        }
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
+    {
+        $Result = "@{`r`n"
+        $NextIndentLevel = $IndentLevel + 1
+        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
+        $Result += "$(Get-Indent $IndentLevel)}"
+        $Result
+    }
+    else
+    {
+        $Value.ToString()
+    }
+}
+
+function Convert-ToPsd1($IndentLevel, $Name, $Value)
+{
+    "$(Get-Indent $IndentLevel)$Name = $(Transform-Value -IndentLevel $IndentLevel -Value $Value)"
+}
+
 function Convert-GraphRunbookToPsd1
 {
     param(
@@ -260,7 +308,8 @@ function Convert-GraphRunbookToPsd1
     $Result = "@{`r`n`r`n"
     $Result += "Comments = @(`r`n)`r`n`r`n"
     $Result += "OutputTypes = @(`r`n)`r`n`r`n"
-    $Result += "Activities = @(`r`n$(Get-ActivitiesText $Runbook))`r`n`r`n"
+    $Result += Convert-ToPsd1 -IndentLevel 0 -Name Activities -Value $Runbook.Activities
+    $Result += "`r`n`r`n"
     $Result += "Links = @(`r`n)`r`n`r`n"
     $Result += "}`r`n"
 
