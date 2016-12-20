@@ -296,7 +296,7 @@ function Transform-Value($IndentLevel, $Value)
         $NextIndentLevel = $IndentLevel + 1
         foreach ($Entry in $Value.GetEnumerator())
         {
-            $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+            $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
         }
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
@@ -305,9 +305,9 @@ function Transform-Value($IndentLevel, $Value)
     {
         $Result = "@{`r`n"
         $NextIndentLevel = $IndentLevel + 1
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value 'Code')`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Process -Value ([scriptblock]::Create($Value.Process)))`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Type -Value 'Code')`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Process -Value ([scriptblock]::Create($Value.Process)))`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
     }
@@ -315,10 +315,10 @@ function Transform-Value($IndentLevel, $Value)
     {
         $Result = "@{`r`n"
         $NextIndentLevel = $IndentLevel + 1
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value 'Command')`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name CommandName -Value $Value.CommandType.CommandName)`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Parameters -Value $Value.Parameters)`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Name -Value $Value.Name)`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Type -Value 'Command')`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name CommandName -Value $Value.CommandType.CommandName)`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Parameters -Value $Value.Parameters)`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
     }
@@ -328,7 +328,7 @@ function Transform-Value($IndentLevel, $Value)
         $NextIndentLevel = $IndentLevel + 1
         foreach ($Entry in $Value.GetEnumerator())
         {
-            $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+            $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
         }
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
@@ -346,11 +346,11 @@ function Transform-Value($IndentLevel, $Value)
         $Result = "@{`r`n"
         $NextIndentLevel = $IndentLevel + 1
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name From -Value ($FromActivity.Name))`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name From -Value ($FromActivity.Name))`r`n"
         $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name To -Value ($ToActivity.Name))`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Type -Value $Value.LinkType)`r`n"
-        $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name Condition -Value $Value.Condition)`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name To -Value ($ToActivity.Name))`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Type -Value $Value.LinkType)`r`n"
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name Condition -Value $Value.Condition)`r`n"
         $Result += "$(Get-Indent $IndentLevel)}"
         $Result
     }
@@ -364,7 +364,7 @@ function Transform-Value($IndentLevel, $Value)
     }
 }
 
-function Convert-ToPsd1($IndentLevel, $Name, $Value)
+function Transform-NamedValue($IndentLevel, $Name, $Value)
 {
     "$(Get-Indent $IndentLevel)$Name = $(Transform-Value -IndentLevel $IndentLevel -Value $Value)"
 }
@@ -379,9 +379,9 @@ function Convert-GraphRunbookToPsd1
     $Result = "@{`r`n`r`n"
     $Result += "Comments = @(`r`n)`r`n`r`n"
     $Result += "OutputTypes = @(`r`n)`r`n`r`n"
-    $Result += Convert-ToPsd1 -IndentLevel 0 -Name Activities -Value $Runbook.Activities
+    $Result += Transform-NamedValue -IndentLevel 0 -Name Activities -Value $Runbook.Activities
     $Result += "`r`n`r`n"
-    $Result += Convert-ToPsd1 -IndentLevel 0 -Name Links -Value $Runbook.Links
+    $Result += Transform-NamedValue -IndentLevel 0 -Name Links -Value $Runbook.Links
     $Result += "`r`n`r`n"
     $Result += "}`r`n"
 
