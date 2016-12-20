@@ -265,6 +265,18 @@ function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
     $Result
 }
 
+function Transform-Hashtable($IndentLevel, [hashtable]$Value)
+{
+    $Result = "@{`r`n"
+    $NextIndentLevel = $IndentLevel + 1
+    foreach ($Entry in $Value.GetEnumerator())
+    {
+        $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+    }
+    $Result += "$(Get-Indent $IndentLevel)}"
+    $Result
+}
+
 function Transform-Value($IndentLevel, $Value)
 {
     if ($Value -is [System.Collections.Generic.List`1[Orchestrator.GraphRunbook.Model.Activity]] -or
@@ -292,14 +304,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [hashtable])
     {
-        $Result = "@{`r`n"
-        $NextIndentLevel = $IndentLevel + 1
-        foreach ($Entry in $Value.GetEnumerator())
-        {
-            $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
-        }
-        $Result += "$(Get-Indent $IndentLevel)}"
-        $Result
+        Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
     {
