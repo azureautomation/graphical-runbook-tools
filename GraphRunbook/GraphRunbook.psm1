@@ -329,14 +329,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
     {
-        $Result = "@{`r`n"
-        $NextIndentLevel = $IndentLevel + 1
-        foreach ($Entry in $Value.GetEnumerator())
-        {
-            $Result += "$(Transform-NamedValue -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
-        }
-        $Result += "$(Get-Indent $IndentLevel)}"
-        $Result
+        Transform-Hashtable -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor])
     {
@@ -344,7 +337,7 @@ function Transform-Value($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
     {
-        Transform-Value -IndentLevel $IndentLevel -Value @{ SourceType = 'ActivityOutput'; Activity = $Value.ActivityName }
+        Transform-Hashtable -IndentLevel $IndentLevel -Value @{ SourceType = 'ActivityOutput'; Activity = $Value.ActivityName }
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
