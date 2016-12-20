@@ -290,6 +290,17 @@ function Transform-Value($IndentLevel, $Value)
     {
         "{ $Value }"
     }
+    elseif ($Value -is [hashtable])
+    {
+        $Result = "@{`r`n"
+        $NextIndentLevel = $IndentLevel + 1
+        foreach ($Entry in $Value.GetEnumerator())
+        {
+            $Result += "$(Convert-ToPsd1 -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+        }
+        $Result += "$(Get-Indent $IndentLevel)}"
+        $Result
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
     {
         $Result = "@{`r`n"
@@ -325,6 +336,10 @@ function Transform-Value($IndentLevel, $Value)
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor])
     {
         Transform-Value -IndentLevel $IndentLevel -Value $Value.Value
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
+    {
+        Transform-Value -IndentLevel $IndentLevel -Value @{ SourceType = 'ActivityOutput'; Activity = $Value.ActivityName }
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {

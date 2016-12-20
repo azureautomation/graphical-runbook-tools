@@ -221,7 +221,7 @@ InModuleScope $sut {
             $ActivityB = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList 'Activity B', $CommandActivityType
             $ActivityB.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
             $ActivityB.Parameters.Add("Parameter1", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 1'))
-            $ActivityB.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 2'))
+            $ActivityB.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Activity A'))
             $Runbook.AddActivity($ActivityB)
 
             $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
@@ -251,7 +251,10 @@ Activities = @(
         CommandName = 'Get-Date'
         Parameters = @{
             Parameter1 = 'Value 1'
-            Parameter2 = 'Value 2'
+            Parameter2 = @{
+                SourceType = 'ActivityOutput'
+                Activity = 'Activity A'
+            }
         }
     }
 )
