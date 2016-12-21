@@ -468,6 +468,18 @@ function ConvertNamedValueToPsd($IndentLevel, $Name, $Value)
     "$(Get-Indent $IndentLevel)$Name = $(ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value)"
 }
 
+function ConvertOptionalSectionToPsd($Name, $Data)
+{
+    if ($Data)
+    {
+        "$(ConvertNamedValueToPsd -IndentLevel 0 -Name $Name -Value $Data)`r`n`r`n"
+    }
+    else
+    {
+        ''
+    }
+}
+
 function Convert-GraphRunbookToPsd1
 {
     param(
@@ -476,31 +488,10 @@ function Convert-GraphRunbookToPsd1
     )
 
     $Result = "@{`r`n`r`n"
-
-    if ($Runbook.Comments)
-    {
-        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Comments -Value $Runbook.Comments
-        $Result += "`r`n`r`n"
-    }
-
-    if ($Runbook.OutputTypes)
-    {
-        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
-        $Result += "`r`n`r`n"
-    }
-
-    if ($Runbook.Activities)
-    {
-        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Activities -Value $Runbook.Activities
-        $Result += "`r`n`r`n"
-    }
-
-    if ($Runbook.Links)
-    {
-        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Links -Value $Runbook.Links
-        $Result += "`r`n`r`n"
-    }
-
+    $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
+    $Result += ConvertOptionalSectionToPsd -Name OutputTypes -Data $Runbook.OutputTypes
+    $Result += ConvertOptionalSectionToPsd -Name Activities -Data $Runbook.Activities
+    $Result += ConvertOptionalSectionToPsd -Name Links -Data $Runbook.Links
     $Result += "}`r`n"
 
     $Result
