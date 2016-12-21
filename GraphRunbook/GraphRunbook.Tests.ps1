@@ -228,7 +228,9 @@ InModuleScope $sut {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity name'
             $Activity.Description = 'Activity description'
+            $Activity.Begin = "'Begin code block'"
             $Activity.Process = "'Process code block'"
+            $Activity.End = "'End code block'"
             $Activity.PositionX = 12
             $Activity.PositionY = 456
             $Runbook.AddActivity($Activity)
@@ -244,7 +246,9 @@ Activities = @(
         Name = 'Activity name'
         Description = 'Activity description'
         Type = 'Code'
+        Begin = { 'Begin code block' }
         Process = { 'Process code block' }
+        End = { 'End code block' }
         PositionX = 12
         PositionY = 456
     }

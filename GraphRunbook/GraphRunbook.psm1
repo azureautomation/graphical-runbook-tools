@@ -329,7 +329,9 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Name = $Value.Name
             Description = $Value.Description
             Type = 'Code'
-            Process = [scriptblock]::Create($Value.Process)
+            Begin = $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) })
+            Process = $(if ($Value.Process) { [scriptblock]::Create($Value.Process) })
+            End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
             PositionX = $Value.PositionX
             PositionY = $Value.PositionY
         })
