@@ -412,14 +412,14 @@ Activities = @(
             }
         }
 
-        function CreateRunbookWithCommandActivityWithParameter($ActivityName, $CommandName, $ParameterName, $ValueDescriptor)
+        function CreateRunbookWithCommandActivityWithParameter($ValueDescriptor)
         {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
-            $CommandActivityType.CommandName = $CommandName
-            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList $ActivityName, $CommandActivityType
+            $CommandActivityType.CommandName = 'Do-Something'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList 'Activity name', $CommandActivityType
             $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
-            $Activity.Parameters.Add($ParameterName, $ValueDescriptor)
+            $Activity.Parameters.Add('ParameterName', $ValueDescriptor)
             [void]$Runbook.AddActivity($Activity)
             $Runbook
         }
@@ -446,7 +446,7 @@ Activities = @(
         }
 
         Context "When GraphRunbook contains Command activity with ConstantValueDescriptor" {
-            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Parameter value')
 
             It "Converts GraphRunbook to text" {
@@ -457,7 +457,7 @@ Activities = @(
         }
 
         Context "When GraphRunbook contains Command activity with ActivityOutputValueDescriptor (activity name only)" {
-            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Source activity')
 
             It "Converts GraphRunbook to text" {
@@ -476,7 +476,7 @@ Activities = @(
             $FieldPath = New-Object 'System.Collections.Generic.List`1[string]'
             $FieldPath.Add('Field1')
             $FieldPath.Add('Field2')
-            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Source activity', $FieldPath)
 
             It "Converts GraphRunbook to text" {
@@ -496,7 +496,7 @@ Activities = @(
         }
 
         Context "When GraphRunbook contains Command activity with PowerShellExpressionValueDescriptor" {
-            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor -ArgumentList '"PowerShell expression"')
 
             It "Converts GraphRunbook to text" {
@@ -511,7 +511,7 @@ Activities = @(
         }
 
         Context "When GraphRunbook contains Command activity with RunbookParameterValueDescriptor" {
-            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor -ArgumentList 'RunbookParameterName')
 
             It "Converts GraphRunbook to text" {
