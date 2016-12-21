@@ -529,7 +529,7 @@ function ConvertOptionalSectionToPsd($Name, $Data)
     }
 }
 
-function Convert-GraphRunbookToPsd1
+function Convert-GraphRunbookToPowerShellData
 {
     param(
         [Parameter(Mandatory = $true)]
@@ -548,4 +548,4 @@ function Convert-GraphRunbookToPsd1
 }
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
-Export-ModuleMember -Function Convert-GraphRunbookToPsd1
+Export-ModuleMember -Function Convert-GraphRunbookToPowerShellData

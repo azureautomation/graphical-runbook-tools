@@ -205,7 +205,7 @@ InModuleScope $sut {
         }
     }
 
-    Describe "Convert-GraphRunbookToPsd1" {
+    Describe "Convert-GraphRunbookToPowerShellData" {
         $AuthoringSdkDir = 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
         Add-Type -Path $AuthoringSdkDir\Orchestrator.GraphRunbook.Model.dll
 
@@ -213,7 +213,7 @@ InModuleScope $sut {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
@@ -238,7 +238,7 @@ InModuleScope $sut {
             $Runbook.AddParameter($ParameterB)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
@@ -276,7 +276,7 @@ Parameters = @(
             $Runbook.AddActivity($Activity)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
@@ -329,7 +329,7 @@ Activities = @(
             $Runbook.AddActivity($Activity)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
@@ -382,7 +382,7 @@ Activities = @(
             $Runbook.AddActivity($Activity)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
@@ -427,7 +427,7 @@ Activities = @(
             $Runbook.AddActivity($Activity)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
@@ -487,7 +487,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Parameter value')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter "'Parameter value'")
             }
@@ -498,7 +498,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.NullConstantValueDescriptor)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter "`$null")
             }
@@ -509,7 +509,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.EmptyStringConstantValueDescriptor)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter "''")
             }
@@ -520,7 +520,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Source activity')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -539,7 +539,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Source activity', $FieldPath)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -559,7 +559,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor -ArgumentList '"PowerShell expression"')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 {
@@ -574,7 +574,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor -ArgumentList 'RunbookParameterName')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -590,7 +590,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'AssetName')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -606,7 +606,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'AssetName')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -622,7 +622,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'AssetName')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -638,7 +638,7 @@ Activities = @(
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'AssetName')
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
@@ -686,7 +686,7 @@ Activities = @(
             $Runbook.AddLink($LinkAtoB)
 
             It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
                 $Text | Should be @"
 @{
