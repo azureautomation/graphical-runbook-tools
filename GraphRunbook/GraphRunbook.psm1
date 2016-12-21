@@ -265,6 +265,25 @@ function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
     $Result
 }
 
+function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value)
+{
+        if ($Value.Count -eq 0)
+        {
+            '@()'
+        }
+        else
+        {
+            $Result = "@(`r`n"
+            $NextIndentLevel = $IndentLevel + 1
+            foreach ($Item in $Value)
+            {
+                $Result += "$(Get-Indent $NextIndentLevel)$(ConvertValueToPsd -IndentLevel $NextIndentLevel -Value $Item)`r`n"
+            }
+            $Result += "$(Get-Indent $IndentLevel))"
+            $Result
+        }
+}
+
 function ConvertDictionaryToPsd($IndentLevel, $Value)
 {
     $Result = "@{`r`n"
@@ -281,21 +300,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
 {
     if ($Value -is [System.Collections.IList])
     {
-        if ($Value.Count -eq 0)
-        {
-            '@()'
-        }
-        else
-        {
-            $Result = "@(`r`n"
-            $NextIndentLevel = $IndentLevel + 1
-            foreach ($Item in $Value)
-            {
-                $Result += "$(Get-Indent $NextIndentLevel)$(ConvertValueToPsd -IndentLevel $NextIndentLevel -Value $Item)`r`n"
-            }
-            $Result += "$(Get-Indent $IndentLevel))"
-            $Result
-        }
+        ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [scriptblock])
     {
