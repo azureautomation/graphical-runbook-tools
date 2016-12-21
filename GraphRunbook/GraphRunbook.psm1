@@ -255,6 +255,11 @@ function Get-Indent($IndentLevel)
     ' ' * $IndentLevel * 4
 }
 
+function IsDefaultValue($Value)
+{
+    ($Value -is [int]) -and ($Value -eq 0)
+}
+
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId)
 {
     $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
@@ -290,7 +295,10 @@ function ConvertDictionaryToPsd($IndentLevel, $Value)
     $NextIndentLevel = $IndentLevel + 1
     foreach ($Entry in $Value.GetEnumerator())
     {
-        $Result += "$(ConvertNamedValueToPsd -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+        if (-not (IsDefaultValue $Entry.Value))
+        {
+            $Result += "$(ConvertNamedValueToPsd -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
+        }
     }
     $Result += "$(Get-Indent $IndentLevel)}"
     $Result
@@ -320,6 +328,8 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Name = $Value.Name
             Type = 'Code'
             Process = [scriptblock]::Create($Value.Process)
+            PositionX = $Value.PositionX
+            PositionY = $Value.PositionY
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
@@ -368,6 +378,10 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Name = $Value.Name
             Text = $Value.Text
         })
+    }
+    elseif ($Value -is [int])
+    {
+        "$Value"
     }
     else
     {
