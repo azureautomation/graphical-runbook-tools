@@ -388,14 +388,31 @@ function Convert-GraphRunbookToPsd1
     )
 
     $Result = "@{`r`n`r`n"
-    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Comments -Value $Runbook.Comments
-    $Result += "`r`n`r`n"
-    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
-    $Result += "`r`n`r`n"
-    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Activities -Value $Runbook.Activities
-    $Result += "`r`n`r`n"
-    $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Links -Value $Runbook.Links
-    $Result += "`r`n`r`n"
+
+    if ($Runbook.Comments)
+    {
+        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Comments -Value $Runbook.Comments
+        $Result += "`r`n`r`n"
+    }
+
+    if ($Runbook.OutputTypes)
+    {
+        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name OutputTypes -Value $Runbook.OutputTypes
+        $Result += "`r`n`r`n"
+    }
+
+    if ($Runbook.Activities)
+    {
+        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Activities -Value $Runbook.Activities
+        $Result += "`r`n`r`n"
+    }
+
+    if ($Runbook.Links)
+    {
+        $Result += ConvertNamedValueToPsd -IndentLevel 0 -Name Links -Value $Runbook.Links
+        $Result += "`r`n`r`n"
+    }
+
     $Result += "}`r`n"
 
     $Result

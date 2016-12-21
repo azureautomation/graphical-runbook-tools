@@ -206,10 +206,25 @@ InModuleScope $sut {
     }
 
     Describe "Convert-GraphRunbookToPsd1" {
-        Context "When GraphRunbook provided" {
-            $AuthoringSdkDir = 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
-            Add-Type -Path $AuthoringSdkDir\Orchestrator.GraphRunbook.Model.dll
+        $AuthoringSdkDir = 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
+        Add-Type -Path $AuthoringSdkDir\Orchestrator.GraphRunbook.Model.dll
 
+        Context "When GraphRunbook is empty" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+}
+
+"@
+            }
+        }
+
+        Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
             $Comment1 = New-Object Orchestrator.GraphRunbook.Model.Comment -ArgumentList 'First comment'
