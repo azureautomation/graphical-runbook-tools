@@ -529,6 +529,32 @@ function ConvertOptionalSectionToPsd($Name, $Data)
     }
 }
 
+function Get-GraphicalAuthoringSdkDirectoryFromRegistry
+{
+    Get-ItemPropertyValue -Path HKLM:\SOFTWARE\WOW6432Node\Microsoft\AzureAutomation\GraphicalAuthoringSDK -Name InstallPath
+}
+
+function Add-GraphRunbookModelAssembly($GraphicalAuthoringSdkDirectory)
+{
+    if (-not $GraphicalAuthoringSdkDirectory)
+    {
+        $GraphicalAuthoringSdkDirectory = Get-GraphicalAuthoringSdkDirectoryFromRegistry
+    }
+
+    $ModelAssemblyPath = Join-Path $GraphicalAuthoringSdkDirectory 'Orchestrator.GraphRunbook.Model.dll'
+
+    if (Test-Path $ModelAssemblyPath -PathType Leaf)
+    {
+        Add-Type -Path $ModelAssemblyPath
+    }
+    else
+    {
+        Write-Warning ("Assembly not found: $ModelAssemblyPath. Install Microsoft Azure Automation Graphical Authoring SDK " +
+            "(https://www.microsoft.com/en-us/download/details.aspx?id=50734) and provide the installation directory path " +
+            "in the GraphicalAuthoringSdkDirectory parameter.")
+    }
+}
+
 function Convert-GraphRunbookToPowerShellData
 {
 <#
@@ -553,9 +579,19 @@ Prerequisites
 An instance of Orchestrator.GraphRunbook.Model.GraphRunbook type
 
 
+.PARAMETER GraphicalAuthoringSdkDirectory
+
+Microsoft Azure Automation Graphical Authoring SDK installation directory
+
+
 .EXAMPLE
 
 Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+
+.EXAMPLE
+
+Convert-GraphRunbookToPowerShellData -Runbook $Runbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
 
 
 .LINK
@@ -572,8 +608,13 @@ Azure Automation: https://azure.microsoft.com/services/automation
         [Parameter(Mandatory = $true)]
         # Should be [Orchestrator.GraphRunbook.Model.GraphRunbook], but declaring this type here would require
         # the Model assembly to be pre-loaded even before accessing module metadata
-        $Runbook
+        $Runbook,
+
+        [string]
+        $GraphicalAuthoringSdkDirectory
     )
+
+    Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
 
     $Result = "@{`r`n`r`n"
     $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
