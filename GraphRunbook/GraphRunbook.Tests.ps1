@@ -224,6 +224,36 @@ InModuleScope $sut {
             }
         }
 
+        Context "When GraphRunbook has parameters" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            $ParameterA = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamA'
+            $Runbook.AddParameter($ParameterA)
+
+            $ParameterB = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamB'
+            $Runbook.AddParameter($ParameterB)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Parameters = @(
+    @{
+        Name = 'ParamA'
+    }
+    @{
+        Name = 'ParamB'
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains Code activity" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity name'
@@ -615,6 +645,12 @@ Activities = @(
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
+
+            $ParameterA = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamA'
+            $Runbook.AddParameter($ParameterA)
+            $ParameterB = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamB'
+            $Runbook.AddParameter($ParameterB)
+
             $Comment1 = New-Object Orchestrator.GraphRunbook.Model.Comment -ArgumentList 'First comment'
             $Comment1.Text = 'First comment text'
             $Runbook.AddComment($Comment1)
@@ -647,6 +683,15 @@ Activities = @(
 
                 $Text | Should be @"
 @{
+
+Parameters = @(
+    @{
+        Name = 'ParamA'
+    }
+    @{
+        Name = 'ParamB'
+    }
+)
 
 Comments = @(
     @{

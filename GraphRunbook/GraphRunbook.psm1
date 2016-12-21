@@ -482,6 +482,12 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Text = $Value.Text
         })
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            Name = $Value.Name
+        })
+    }
     elseif ($Value -is [int])
     {
         "$Value"
@@ -528,6 +534,7 @@ function Convert-GraphRunbookToPsd1
     )
 
     $Result = "@{`r`n`r`n"
+    $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
     $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
     $Result += ConvertOptionalSectionToPsd -Name OutputTypes -Data $Runbook.OutputTypes
     $Result += ConvertOptionalSectionToPsd -Name Activities -Data $Runbook.Activities
