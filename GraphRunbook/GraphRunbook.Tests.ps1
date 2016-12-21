@@ -327,6 +327,59 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains InvokeRunbook activity" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $InvokeRunbookActivityType = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivityType
+            $InvokeRunbookActivityType.CommandName = 'Do-Something'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivity -ArgumentList 'Activity name', $InvokeRunbookActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $Activity.Parameters.Add("Parameter1", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 1'))
+            $Activity.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Activity A'))
+            $Activity.Parameters.Add("Parameter3", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList @($null)))
+            $Activity.Description = 'Activity description'
+            $Activity.CheckpointAfter = $true
+            $Activity.ExceptionsToErrors = $true
+            $Activity.LoopExitCondition = '$RetryData.NumberOfAttempts -gt 5'
+            $Activity.PositionX = 12
+            $Activity.PositionY = 456
+            $Runbook.AddActivity($Activity)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Description = 'Activity description'
+        Type = 'InvokeRunbook'
+        CommandName = 'Do-Something'
+        Parameters = @{
+            Parameter1 = 'Value 1'
+            Parameter2 = @{
+                SourceType = 'ActivityOutput'
+                Activity = 'Activity A'
+            }
+            Parameter3 = `$null
+        }
+        CheckpointAfter = `$true
+        ExceptionsToErrors = `$true
+        LoopExitCondition = {
+            `$RetryData.NumberOfAttempts -gt 5
+        }
+        PositionX = 12
+        PositionY = 456
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains Junction activity" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Activity = New-Object Orchestrator.GraphRunbook.Model.JunctionActivity -ArgumentList 'Activity name'
