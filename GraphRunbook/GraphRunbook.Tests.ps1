@@ -526,6 +526,70 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains Command activity with AutomationCertificateValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'AssetName')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
+@{
+                SourceType = 'AutomationCertificate'
+                Name = 'AssetName'
+            }
+"@)
+            }
+        }
+
+        Context "When GraphRunbook contains Command activity with AutomationCredentialValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'AssetName')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
+@{
+                SourceType = 'AutomationCredential'
+                Name = 'AssetName'
+            }
+"@)
+            }
+        }
+
+        Context "When GraphRunbook contains Command activity with AutomationConnectionValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'AssetName')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
+@{
+                SourceType = 'AutomationConnection'
+                Name = 'AssetName'
+            }
+"@)
+            }
+        }
+
+        Context "When GraphRunbook contains Command activity with AutomationVariableValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'AssetName')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
+@{
+                SourceType = 'AutomationVariable'
+                Name = 'AssetName'
+            }
+"@)
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 

@@ -421,6 +421,34 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Name = $Value.ParameterName
         })
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            SourceType = 'AutomationCertificate'
+            Name = $Value.CertificateName
+        })
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            SourceType = 'AutomationCredential'
+            Name = $Value.CredentialName
+        })
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            SourceType = 'AutomationConnection'
+            Name = $Value.ConnectionName
+        })
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            SourceType = 'AutomationVariable'
+            Name = $Value.VariableName
+        })
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
