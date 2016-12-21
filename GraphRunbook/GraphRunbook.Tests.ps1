@@ -424,14 +424,9 @@ Activities = @(
             $Runbook
         }
 
-        Context "When GraphRunbook contains Command activity with ConstantValueDescriptor" {
-            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
-                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Parameter value')
-
-            It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
-
-                $Text | Should be @"
+        function CreateExpectedRunbookTextWithCommandActivityWithParameter($ParameterText)
+        {
+@"
 @{
 
 Activities = @(
@@ -440,14 +435,24 @@ Activities = @(
         Type = 'Command'
         CommandName = 'Do-Something'
         Parameters = @{
-            ParameterName = 'Parameter value'
+            ParameterName = $ParameterText
         }
     }
 )
 
 }
 
-"@
+"@            
+        }
+
+        Context "When GraphRunbook contains Command activity with ConstantValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Parameter value')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter "'Parameter value'")
             }
         }
 
@@ -458,26 +463,12 @@ Activities = @(
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
-                $Text | Should be @"
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
-
-Activities = @(
-    @{
-        Name = 'Activity name'
-        Type = 'Command'
-        CommandName = 'Do-Something'
-        Parameters = @{
-            ParameterName = @{
                 SourceType = 'ActivityOutput'
                 Activity = 'Source activity'
             }
-        }
-    }
-)
-
-}
-
-"@
+"@)
             }
         }
 
@@ -491,16 +482,8 @@ Activities = @(
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
-                $Text | Should be @"
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
-
-Activities = @(
-    @{
-        Name = 'Activity name'
-        Type = 'Command'
-        CommandName = 'Do-Something'
-        Parameters = @{
-            ParameterName = @{
                 SourceType = 'ActivityOutput'
                 Activity = 'Source activity'
                 FieldPath = @(
@@ -508,13 +491,7 @@ Activities = @(
                     'Field2'
                 )
             }
-        }
-    }
-)
-
-}
-
-"@
+"@)
             }
         }
 
@@ -525,25 +502,11 @@ Activities = @(
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
-                $Text | Should be @"
-@{
-
-Activities = @(
-    @{
-        Name = 'Activity name'
-        Type = 'Command'
-        CommandName = 'Do-Something'
-        Parameters = @{
-            ParameterName = {
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
+{
                 "PowerShell expression"
             }
-        }
-    }
-)
-
-}
-
-"@
+"@)
             }
         }
 
@@ -554,26 +517,12 @@ Activities = @(
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
 
-                $Text | Should be @"
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter @"
 @{
-
-Activities = @(
-    @{
-        Name = 'Activity name'
-        Type = 'Command'
-        CommandName = 'Do-Something'
-        Parameters = @{
-            ParameterName = @{
                 SourceType = 'RunbookParameter'
                 Name = 'RunbookParameterName'
             }
-        }
-    }
-)
-
-}
-
-"@
+"@)
             }
         }
 
