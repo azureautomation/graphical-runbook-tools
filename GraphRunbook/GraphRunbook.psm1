@@ -414,6 +414,13 @@ function ConvertValueToPsd($IndentLevel, $Value)
     {
         ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            SourceType = 'RunbookParameter'
+            Name = $Value.ParameterName
+        })
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
