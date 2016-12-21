@@ -486,6 +486,9 @@ function ConvertValueToPsd($IndentLevel, $Value)
     {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
+            Description = $Value.Description
+            Mandatory = -not $Value.Optional
+            DefaultValue = $Value.DefaultValue
         })
     }
     elseif ($Value -is [int])

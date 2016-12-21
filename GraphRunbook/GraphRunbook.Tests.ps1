@@ -228,9 +228,13 @@ InModuleScope $sut {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
             $ParameterA = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamA'
+            $ParameterA.Optional = $false
+            $ParameterA.Description = 'Parameter description'
             $Runbook.AddParameter($ParameterA)
 
             $ParameterB = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamB'
+            $ParameterB.Optional = $true
+            $ParameterB.DefaultValue = 'Default value'
             $Runbook.AddParameter($ParameterB)
 
             It "Converts GraphRunbook to text" {
@@ -242,9 +246,12 @@ InModuleScope $sut {
 Parameters = @(
     @{
         Name = 'ParamA'
+        Description = 'Parameter description'
+        Mandatory = `$true
     }
     @{
         Name = 'ParamB'
+        DefaultValue = 'Default value'
     }
 )
 
