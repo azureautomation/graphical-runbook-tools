@@ -224,6 +224,32 @@ InModuleScope $sut {
             }
         }
 
+        Context "When GraphRunbook contains Code activity" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity name'
+            $Activity.Process = "'Process code block'"
+            $Runbook.AddActivity($Activity)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Type = 'Code'
+        Process = { 'Process code block' }
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
