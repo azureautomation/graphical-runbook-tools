@@ -357,9 +357,15 @@ function ConvertValueToPsd($IndentLevel, $Value)
     {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
+            Description = $Value.Description
             Type = 'Command'
             CommandName = $Value.CommandType.CommandName
             Parameters = $Value.Parameters
+            CheckpointAfter = $Value.CheckpointAfter
+            ExceptionsToErrors = $Value.ExceptionsToErrors
+            LoopExitCondition = $Value.LoopExitCondition
+            PositionX = $Value.PositionX
+            PositionY = $Value.PositionY
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
