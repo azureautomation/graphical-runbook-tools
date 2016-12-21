@@ -257,7 +257,8 @@ function Get-Indent($IndentLevel)
 
 function IsDefaultValue($Value)
 {
-    ($Value -is [int]) -and ($Value -eq 0)
+    ($Value -eq $null) -or
+    (($Value -is [int]) -and ($Value -eq 0))
 }
 
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId)
@@ -326,6 +327,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
     {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
+            Description = $Value.Description
             Type = 'Code'
             Process = [scriptblock]::Create($Value.Process)
             PositionX = $Value.PositionX

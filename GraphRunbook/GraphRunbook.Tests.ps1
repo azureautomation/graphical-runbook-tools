@@ -227,6 +227,7 @@ InModuleScope $sut {
         Context "When GraphRunbook contains Code activity" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity name'
+            $Activity.Description = 'Activity description'
             $Activity.Process = "'Process code block'"
             $Activity.PositionX = 12
             $Activity.PositionY = 456
@@ -241,6 +242,7 @@ InModuleScope $sut {
 Activities = @(
     @{
         Name = 'Activity name'
+        Description = 'Activity description'
         Type = 'Code'
         Process = { 'Process code block' }
         PositionX = 12
