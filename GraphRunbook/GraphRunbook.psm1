@@ -258,7 +258,8 @@ function Get-Indent($IndentLevel)
 function IsDefaultValue($Value)
 {
     ($Value -eq $null) -or
-    (($Value -is [int]) -and ($Value -eq 0))
+    (($Value -is [int]) -and ($Value -eq 0)) -or
+    (($Value -is [bool]) -and ($Value -eq $false))
 }
 
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId)
@@ -340,6 +341,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
             End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
             PositionX = $Value.PositionX
             PositionY = $Value.PositionY
+            CheckpointAfter = $Value.CheckpointAfter
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
@@ -392,6 +394,17 @@ function ConvertValueToPsd($IndentLevel, $Value)
     elseif ($Value -is [int])
     {
         "$Value"
+    }
+    elseif ($Value -is [bool])
+    {
+        if ($Value)
+        {
+            '$true'
+        }
+        else
+        {
+            '$false'
+        }
     }
     else
     {
