@@ -407,6 +407,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'ActivityOutput'
             Activity = $Value.ActivityName
+            FieldPath = $Value.FieldPath
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])

@@ -481,6 +481,43 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains Command activity with ActivityOutputValueDescriptor (activity name and field path)" {
+            $FieldPath = New-Object 'System.Collections.Generic.List`1[string]'
+            $FieldPath.Add('Field1')
+            $FieldPath.Add('Field2')
+            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Source activity', $FieldPath)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Type = 'Command'
+        CommandName = 'Do-Something'
+        Parameters = @{
+            ParameterName = @{
+                SourceType = 'ActivityOutput'
+                Activity = 'Source activity'
+                FieldPath = @(
+                    'Field1'
+                    'Field2'
+                )
+            }
+        }
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
