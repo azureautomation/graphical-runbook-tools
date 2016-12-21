@@ -305,6 +305,12 @@ function ConvertDictionaryToPsd($IndentLevel, $Value)
     $Result
 }
 
+function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value)
+{
+    $NextIndentLevel = $IndentLevel + 1
+    "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
+}
+
 function ConvertValueToPsd($IndentLevel, $Value)
 {
     if ($Value -is [System.Collections.IList])
@@ -313,7 +319,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
     }
     elseif ($Value -is [scriptblock])
     {
-        "{ $Value }"
+        ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [hashtable])
     {

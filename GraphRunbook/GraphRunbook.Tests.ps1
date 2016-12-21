@@ -246,9 +246,15 @@ Activities = @(
         Name = 'Activity name'
         Description = 'Activity description'
         Type = 'Code'
-        Begin = { 'Begin code block' }
-        Process = { 'Process code block' }
-        End = { 'End code block' }
+        Begin = {
+            'Begin code block'
+        }
+        Process = {
+            'Process code block'
+        }
+        End = {
+            'End code block'
+        }
         PositionX = 12
         PositionY = 456
     }
@@ -315,7 +321,9 @@ Activities = @(
     @{
         Name = 'Activity A'
         Type = 'Code'
-        Process = { 'Hello' }
+        Process = {
+            'Hello'
+        }
     }
     @{
         Name = 'Activity B'
@@ -336,7 +344,9 @@ Links = @(
         From = 'Activity A'
         To = 'Activity B'
         Type = 'Sequence'
-        Condition = { `$ActivityOutput['A'].Count -gt 0 }
+        Condition = {
+            `$ActivityOutput['A'].Count -gt 0
+        }
     }
 )
 
