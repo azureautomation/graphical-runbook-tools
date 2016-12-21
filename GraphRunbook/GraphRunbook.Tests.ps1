@@ -327,6 +327,38 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains Junction activity" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.JunctionActivity -ArgumentList 'Activity name'
+            $Activity.Description = 'Activity description'
+            $Activity.CheckpointAfter = $true
+            $Activity.PositionX = 12
+            $Activity.PositionY = 456
+            $Runbook.AddActivity($Activity)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Description = 'Activity description'
+        Type = 'Junction'
+        CheckpointAfter = `$true
+        PositionX = 12
+        PositionY = 456
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 

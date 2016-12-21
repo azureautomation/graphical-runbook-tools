@@ -368,6 +368,17 @@ function ConvertValueToPsd($IndentLevel, $Value)
             PositionY = $Value.PositionY
         })
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity])
+    {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            Name = $Value.Name
+            Description = $Value.Description
+            Type = 'Junction'
+            CheckpointAfter = $Value.CheckpointAfter
+            PositionX = $Value.PositionX
+            PositionY = $Value.PositionY
+        })
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
     {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
