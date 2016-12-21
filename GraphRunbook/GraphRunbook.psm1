@@ -555,6 +555,22 @@ function Add-GraphRunbookModelAssembly($GraphicalAuthoringSdkDirectory)
     }
 }
 
+function Convert-GraphRunbookObjectToPowerShellData(
+    [Parameter(Mandatory = $true)]
+    [Orchestrator.GraphRunbook.Model.GraphRunbook]
+    $Runbook)
+{
+    $Result = "@{`r`n`r`n"
+    $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
+    $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
+    $Result += ConvertOptionalSectionToPsd -Name OutputTypes -Data $Runbook.OutputTypes
+    $Result += ConvertOptionalSectionToPsd -Name Activities -Data $Runbook.Activities
+    $Result += ConvertOptionalSectionToPsd -Name Links -Data $Runbook.Links
+    $Result += "}`r`n"
+
+    $Result
+}
+
 function Convert-GraphRunbookToPowerShellData
 {
 <#
@@ -616,15 +632,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
     Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
 
-    $Result = "@{`r`n`r`n"
-    $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
-    $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
-    $Result += ConvertOptionalSectionToPsd -Name OutputTypes -Data $Runbook.OutputTypes
-    $Result += ConvertOptionalSectionToPsd -Name Activities -Data $Runbook.Activities
-    $Result += ConvertOptionalSectionToPsd -Name Links -Data $Runbook.Links
-    $Result += "}`r`n"
-
-    $Result
+    Convert-GraphRunbookObjectToPowerShellData $Runbook
 }
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
