@@ -297,6 +297,7 @@ Activities = @(
             $ActivityB.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
             $ActivityB.Parameters.Add("Parameter1", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 1'))
             $ActivityB.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Activity A'))
+            $ActivityB.Parameters.Add("Parameter3", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList @($null)))
             $Runbook.AddActivity($ActivityB)
 
             $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
@@ -343,6 +344,7 @@ Activities = @(
                 SourceType = 'ActivityOutput'
                 Activity = 'Activity A'
             }
+            Parameter3 = `$null
         }
     }
 )

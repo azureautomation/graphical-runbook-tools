@@ -317,7 +317,11 @@ function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value)
 
 function ConvertValueToPsd($IndentLevel, $Value)
 {
-    if ($Value -is [System.Collections.IList])
+    if ($Value -eq $null)
+    {
+        '$null'
+    }
+    elseif ($Value -is [System.Collections.IList])
     {
         ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
     }
