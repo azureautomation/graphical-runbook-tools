@@ -531,9 +531,48 @@ function ConvertOptionalSectionToPsd($Name, $Data)
 
 function Convert-GraphRunbookToPowerShellData
 {
+<#
+
+.SYNOPSIS
+
+Converts a graphical runbook to PowerShell data
+
+
+.DESCRIPTION
+
+Converts a graphical runbook to PowerShell data
+
+Prerequisites
+=============
+
+1. Microsoft Azure Automation Graphical Authoring SDK (download from https://www.microsoft.com/en-us/download/details.aspx?id=50734)
+
+
+.PARAMETER Runbook
+
+An instance of Orchestrator.GraphRunbook.Model.GraphRunbook type
+
+
+.EXAMPLE
+
+Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+
+.LINK
+
+Source code: https://github.com/azureautomation/graphical-runbook-tools
+
+
+.LINK
+
+Azure Automation: https://azure.microsoft.com/services/automation
+
+#>
     param(
         [Parameter(Mandatory = $true)]
-        [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
+        # Should be [Orchestrator.GraphRunbook.Model.GraphRunbook], but declaring this type here would require
+        # the Model assembly to be pre-loaded even before accessing module metadata
+        $Runbook
     )
 
     $Result = "@{`r`n`r`n"
