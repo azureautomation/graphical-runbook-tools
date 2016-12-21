@@ -339,9 +339,10 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Begin = $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) })
             Process = $(if ($Value.Process) { [scriptblock]::Create($Value.Process) })
             End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
+            CheckpointAfter = $Value.CheckpointAfter
+            ExceptionsToErrors = $Value.ExceptionsToErrors
             PositionX = $Value.PositionX
             PositionY = $Value.PositionY
-            CheckpointAfter = $Value.CheckpointAfter
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])

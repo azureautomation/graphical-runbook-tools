@@ -232,6 +232,7 @@ InModuleScope $sut {
             $Activity.Process = "'Process code block'"
             $Activity.End = "'End code block'"
             $Activity.CheckpointAfter = $true
+            $Activity.ExceptionsToErrors = $true
             $Activity.PositionX = 12
             $Activity.PositionY = 456
             $Runbook.AddActivity($Activity)
@@ -256,9 +257,10 @@ Activities = @(
         End = {
             'End code block'
         }
+        CheckpointAfter = `$true
+        ExceptionsToErrors = `$true
         PositionX = 12
         PositionY = 456
-        CheckpointAfter = `$true
     }
 )
 
