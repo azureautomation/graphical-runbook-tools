@@ -398,7 +398,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
     {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor])
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IConstantValueDescriptor])
     {
         ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value.Value
     }

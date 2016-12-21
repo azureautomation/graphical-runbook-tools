@@ -456,6 +456,28 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains Command activity with NullConstantValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.NullConstantValueDescriptor)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter "`$null")
+            }
+        }
+
+        Context "When GraphRunbook contains Command activity with EmptyStringConstantValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.EmptyStringConstantValueDescriptor)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookTextWithCommandActivityWithParameter "''")
+            }
+        }
+
         Context "When GraphRunbook contains Command activity with ActivityOutputValueDescriptor (activity name only)" {
             $Runbook = CreateRunbookWithCommandActivityWithParameter `
                 -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Source activity')
