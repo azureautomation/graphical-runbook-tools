@@ -412,6 +412,45 @@ Activities = @(
             }
         }
 
+        function CreateRunbookWithCommandActivityWithParameter($ActivityName, $CommandName, $ParameterName, $ValueDescriptor)
+        {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = $CommandName
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList $ActivityName, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $Activity.Parameters.Add($ParameterName, $ValueDescriptor)
+            [void]$Runbook.AddActivity($Activity)
+            $Runbook
+        }
+
+        Context "When GraphRunbook contains Command activity with ConstantValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Parameter value')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Type = 'Command'
+        CommandName = 'Do-Something'
+        Parameters = @{
+            ParameterName = 'Parameter value'
+        }
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
