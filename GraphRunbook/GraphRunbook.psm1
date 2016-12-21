@@ -259,7 +259,10 @@ function IsDefaultValue($Value)
 {
     ($Value -eq $null) -or
     (($Value -is [int]) -and ($Value -eq 0)) -or
-    (($Value -is [bool]) -and ($Value -eq $false))
+    (($Value -is [bool]) -and ($Value -eq $false)) -or
+    (($Value -is [Orchestrator.GraphRunbook.Model.Condition]) -and
+        ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Disabled) -and
+        ([string]::IsNullOrEmpty($Value.Expression)))
 }
 
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId)
@@ -341,6 +344,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
             End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
+            LoopExitCondition = $Value.LoopExitCondition
             PositionX = $Value.PositionX
             PositionY = $Value.PositionY
         })
@@ -383,7 +387,17 @@ function ConvertValueToPsd($IndentLevel, $Value)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition])
     {
-        ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+        if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled)
+        {
+            ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+        }
+        else
+        {
+            ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+                Mode = $Value.Mode
+                Expression = [scriptblock]::Create($Value.Expression)
+            })
+        }
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment])
     {

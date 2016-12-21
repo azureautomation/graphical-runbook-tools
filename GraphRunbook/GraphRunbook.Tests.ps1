@@ -233,6 +233,7 @@ InModuleScope $sut {
             $Activity.End = "'End code block'"
             $Activity.CheckpointAfter = $true
             $Activity.ExceptionsToErrors = $true
+            $Activity.LoopExitCondition = '$RetryData.NumberOfAttempts -gt 5'
             $Activity.PositionX = 12
             $Activity.PositionY = 456
             $Runbook.AddActivity($Activity)
@@ -259,6 +260,9 @@ Activities = @(
         }
         CheckpointAfter = `$true
         ExceptionsToErrors = `$true
+        LoopExitCondition = {
+            `$RetryData.NumberOfAttempts -gt 5
+        }
         PositionX = 12
         PositionY = 456
     }
