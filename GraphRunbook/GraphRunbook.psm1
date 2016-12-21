@@ -410,6 +410,10 @@ function ConvertValueToPsd($IndentLevel, $Value)
             FieldPath = $Value.FieldPath
         })
     }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor])
+    {
+        ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+    }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
     {
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId

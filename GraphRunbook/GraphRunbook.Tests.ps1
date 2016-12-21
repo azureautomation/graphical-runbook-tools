@@ -518,6 +518,35 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains Command activity with PowerShellExpressionValueDescriptor" {
+            $Runbook = CreateRunbookWithCommandActivityWithParameter -ActivityName 'Activity name' -CommandName 'Do-Something' -ParameterName 'ParameterName' `
+                -ValueDescriptor (New-Object Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor -ArgumentList '"PowerShell expression"')
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPsd1 -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Type = 'Command'
+        CommandName = 'Do-Something'
+        Parameters = @{
+            ParameterName = {
+                "PowerShell expression"
+            }
+        }
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
