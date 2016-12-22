@@ -450,6 +450,15 @@ function ConvertCommentToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Comm
     })
 }
 
+function ConvertParameterToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Parameter]$Value) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        Name = $Value.Name
+        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Mandatory = -not $Value.Optional
+        DefaultValue = $Value.DefaultValue
+    })
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -485,12 +494,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertCommentToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            Name = $Value.Name
-            Description = $(if ($Value.Description) { $Value.Description } else { $null })
-            Mandatory = -not $Value.Optional
-            DefaultValue = $Value.DefaultValue
-        })
+        ConvertParameterToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [int]) {
         "$Value"
