@@ -560,28 +560,6 @@ function Add-GraphRunbookModelAssembly($GraphicalAuthoringSdkDirectory)
     }
 }
 
-function Convert-GraphRunbookObjectToPowerShellData(
-    [Parameter(Mandatory = $true)]
-    [Orchestrator.GraphRunbook.Model.GraphRunbook]
-    $Runbook)
-{
-    $Result = "@{`r`n`r`n"
-    $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
-    $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
-    $Result += ConvertOptionalSectionToPsd -Name OutputTypes -Data $Runbook.OutputTypes
-    $Result += ConvertOptionalSectionToPsd -Name Activities -Data $Runbook.Activities
-    $Result += ConvertOptionalSectionToPsd -Name Links -Data $Runbook.Links
-    $Result += "}`r`n"
-
-    $Result
-}
-
-function Convert-GraphRunbookFileToPowerShellData($RunbookFileName)
-{
-    $Runbook = Get-GraphRunbookFromFile -FileName $RunbookFileName
-    Convert-GraphRunbookObjectToPowerShellData $Runbook
-}
-
 function Get-GraphRunbookFromFile($FileName)
 {
     $SerializedRunbook = Get-Content -Path $FileName | Out-String
@@ -600,6 +578,54 @@ function New-TemporaryDirectory
     $parent = [System.IO.Path]::GetTempPath()
     [string]$name = [System.Guid]::NewGuid()
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
+}
+
+function Convert-GraphRunbookObjectToPowerShellData(
+    [Parameter(Mandatory = $true)]
+    [Orchestrator.GraphRunbook.Model.GraphRunbook]
+    $Runbook)
+{
+    $Result = "@{`r`n`r`n"
+    $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
+    $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
+    $Result += ConvertOptionalSectionToPsd -Name OutputTypes -Data $Runbook.OutputTypes
+    $Result += ConvertOptionalSectionToPsd -Name Activities -Data $Runbook.Activities
+    $Result += ConvertOptionalSectionToPsd -Name Links -Data $Runbook.Links
+    $Result += "}`r`n"
+
+    $Result
+}
+
+function Convert-GraphRunbookFileToPowerShellData($RunbookFileName)
+{
+    Write-Verbose "Converting runbook from file $RunbookFileName"
+    $Runbook = Get-GraphRunbookFromFile -FileName $RunbookFileName
+    Convert-GraphRunbookObjectToPowerShellData $Runbook
+}
+
+function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName)
+{
+    $OutputFolder = New-TemporaryDirectory
+    Write-Verbose "Created temporary directory: $OutputFolder"
+    try
+    {
+        Write-Verbose "Exporting runbook '$RunbookName' to temporary directory '$OutputFolder'"
+        $RunbookFile = Export-AzureRMAutomationRunbook `
+            -Name $RunbookName `
+            -OutputFolder $OutputFolder `
+            -Slot $Slot `
+            -ResourceGroupName $ResourceGroupName `
+            -AutomationAccountName $AutomationAccountName
+        
+        $FullFileName = Join-Path $OutputFolder $RunbookFile.Name
+        Write-Verbose "Exported runbook '$RunbookName' to file '$FullFileName'"
+
+        Convert-GraphRunbookFileToPowerShellData $FullFileName
+    }
+    finally
+    {
+        Remove-Item $OutputFolder -Recurse -Force
+    }
 }
 
 function Convert-GraphRunbookToPowerShellData
@@ -744,22 +770,12 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
         'ByRunbookName'
         {
-            $OutputFolder = New-TemporaryDirectory
-            try
-            {
-                $RunbookFile = Export-AzureRMAutomationRunbook `
-                    -Name $RunbookName `
-                    -OutputFolder $OutputFolder `
-                    -Slot $Slot `
-                    -ResourceGroupName $ResourceGroupName `
-                    -AutomationAccountName $AutomationAccountName
-
-                Convert-GraphRunbookFileToPowerShellData $RunbookFile.FullName
-            }
-            finally
-            {
-                Remove-Item $OutputFolder -Recurse -Force
-            }
+            Convert-GraphRunbookInAzureToPowerShellData `
+                -RunbookName $RunbookName `
+                -Slot $Slot `
+                -ResourceGroupName $ResourceGroupName `
+                -AutomationAccountName $AutomationAccountName `
+                -ErrorAction Stop
         }
     }
 }
