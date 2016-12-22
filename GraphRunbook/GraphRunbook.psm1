@@ -302,22 +302,12 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
 
     if ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
         $Properties.Add('Type', 'Code')
-        $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
-        $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
-        $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
         $Properties.Add('Type', 'Command')
-        $Properties.Add('ModuleName', $(PrepareStringPropertyValue $Value.CommandType.ModuleName))
-        $Properties.Add('CommandName', $Value.CommandType.CommandName)
-        $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
-        $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
         $Properties.Add('Type', 'InvokeRunbook')
-        $Properties.Add('CommandName', $Value.RunbookActivityType.CommandName)
-        $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
-        $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
         $Properties.Add('Type', 'Junction')
@@ -326,6 +316,15 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
         throw "Activity '$($Value.Name)' is of unknown type: $($Value.GetType().FullName)"
     }
 
+    $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
+    $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
+    $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
+
+    $Properties.Add('ModuleName', $(PrepareStringPropertyValue $Value.CommandType.ModuleName))
+    $Properties.Add('CommandName', $Value.InvocationActivityType.CommandName)
+    $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
+    $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
+    
     $Properties.Add('CheckpointAfter', $Value.CheckpointAfter)
     $Properties.Add('ExceptionsToErrors', $Value.ExceptionsToErrors)
     $Properties.Add('LoopExitCondition', $Value.LoopExitCondition)
