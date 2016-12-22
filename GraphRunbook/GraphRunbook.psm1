@@ -474,16 +474,13 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [int]) {
         "$Value"
     }
-    elseif ($Value -is [System.Collections.IList]) {
-        ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
-    }
     elseif ($Value -is [scriptblock]) {
         ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [hashtable]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
+    elseif ($Value -is [System.Collections.IList]) {
+        ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [System.Collections.Specialized.OrderedDictionary]) {
+    elseif ($Value -is [System.Collections.IDictionary]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [System.Tuple`2[[int], [int]]]) {
@@ -491,9 +488,6 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]) {
         ConvertActivityToPsd -IndentLevel $IndentLevel -Value $Value
-    }
-    elseif ($Value -is [System.Collections.IDictionary]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IValueDescriptor]) {
         ConvertValueDescriptorToPsd -IndentLevel $IndentLevel -Value $Value
