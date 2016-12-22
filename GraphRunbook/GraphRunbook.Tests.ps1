@@ -317,6 +317,7 @@ Activities = @(
             $Activity.Parameters.Add("Parameter1", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 1'))
             $Activity.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Activity A'))
             $Activity.Parameters.Add("Parameter3", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList @($null)))
+            $Activity.CustomParameters = '-CustomParam CustomValue'
             $Activity.Description = 'Activity description'
             $Activity.CheckpointAfter = $true
             $Activity.ExceptionsToErrors = $true
@@ -346,6 +347,7 @@ Activities = @(
             }
             Parameter3 = `$null
         }
+        CustomParameters = '-CustomParam CustomValue'
         CheckpointAfter = `$true
         ExceptionsToErrors = `$true
         LoopExitCondition = {
@@ -370,6 +372,7 @@ Activities = @(
             $Activity.Parameters.Add("Parameter1", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'Value 1'))
             $Activity.Parameters.Add("Parameter2", (New-Object Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor -ArgumentList 'Activity A'))
             $Activity.Parameters.Add("Parameter3", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList @($null)))
+            $Activity.CustomParameters = '-CustomParam CustomValue'
             $Activity.Description = 'Activity description'
             $Activity.CheckpointAfter = $true
             $Activity.ExceptionsToErrors = $true
@@ -398,6 +401,7 @@ Activities = @(
             }
             Parameter3 = `$null
         }
+        CustomParameters = '-CustomParam CustomValue'
         CheckpointAfter = `$true
         ExceptionsToErrors = `$true
         LoopExitCondition = {

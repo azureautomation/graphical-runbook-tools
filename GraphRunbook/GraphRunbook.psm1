@@ -330,6 +330,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             ModuleName = SkipIfNullOrEmptyString $Value.CommandType.ModuleName
             CommandName = $Value.CommandType.CommandName
             Parameters = $Value.Parameters
+            CustomParameters = SkipIfNullOrEmptyString $Value.CustomParameters
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
             LoopExitCondition = $Value.LoopExitCondition
@@ -343,6 +344,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             Type = 'InvokeRunbook'
             CommandName = $Value.RunbookActivityType.CommandName
             Parameters = $Value.Parameters
+            CustomParameters = SkipIfNullOrEmptyString $Value.CustomParameters
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
             LoopExitCondition = $Value.LoopExitCondition
