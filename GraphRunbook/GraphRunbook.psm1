@@ -313,63 +313,43 @@ function AddLastCommonActivityProperties(
     $Properties.Add('Position', $Position)
 }
 
-function CreateActivityProperties([Orchestrator.GraphRunbook.Model.Activity]$Activity, [string]$ActivityType) {
+function CreateActivityProperties([Orchestrator.GraphRunbook.Model.Activity]$Activity) {
     $Properties = [ordered]@{ }
     AddFirstCommonActivityProperties -Properties $Properties -Activity $Activity
-    $Properties.Add('Type', $ActivityType)
     $Properties
 }
 
-function ConvertCodeActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]$Value) {
-    $Properties = CreateActivityProperties -Activity $Value -ActivityType Code
-    $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
-    $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
-    $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
-    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
-    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
-}
-
-function ConvertCommandActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.CommandActivity]$Value) {
-    $Properties = CreateActivityProperties -Activity $Value -ActivityType Command
-    $Properties.Add('ModuleName', $(PrepareStringPropertyValue $Value.CommandType.ModuleName))
-    $Properties.Add('CommandName', $Value.CommandType.CommandName)
-    $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
-    $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
-    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
-    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
-}
-
-function ConvertInvokeRunbookActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]$Value) {
-    $Properties = CreateActivityProperties -Activity $Value -ActivityType InvokeRunbook
-    $Properties.Add('CommandName', $Value.RunbookActivityType.CommandName)
-    $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
-    $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
-    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
-    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
-}
-
-function ConvertJunctionActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.JunctionActivity]$Value) {
-    $Properties = CreateActivityProperties -Activity $Value -ActivityType Junction
-    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
-    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
-}
-
 function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Value) {
+    $Properties = CreateActivityProperties -Activity $Value
+
     if ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
-        ConvertCodeActivityToPsd -IndentLevel $IndentLevel -Value $Value
+        $Properties.Add('Type', 'Code')
+        $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
+        $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
+        $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
-        ConvertCommandActivityToPsd -IndentLevel $IndentLevel -Value $Value
+        $Properties.Add('Type', 'Command')
+        $Properties.Add('ModuleName', $(PrepareStringPropertyValue $Value.CommandType.ModuleName))
+        $Properties.Add('CommandName', $Value.CommandType.CommandName)
+        $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
+        $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
-        ConvertInvokeRunbookActivityToPsd -IndentLevel $IndentLevel -Value $Value
+        $Properties.Add('Type', 'InvokeRunbook')
+        $Properties.Add('CommandName', $Value.RunbookActivityType.CommandName)
+        $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
+        $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
-        ConvertJunctionActivityToPsd -IndentLevel $IndentLevel -Value $Value
+        $Properties.Add('Type', 'Junction')
     }
     else {
         throw "Activity '$($Value.Name)' is of unknown type: $($Value.GetType().FullName)"
     }
+
+    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
 }
 
 function ConvertValueDescriptorToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IValueDescriptor]$Value) {
