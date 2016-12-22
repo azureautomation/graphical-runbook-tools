@@ -651,7 +651,6 @@ Activities = @(
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
-
             $ParameterA = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamA'
             $Runbook.AddParameter($ParameterA)
             $ParameterB = New-Object Orchestrator.GraphRunbook.Model.Parameter -ArgumentList 'ParamB'
@@ -752,6 +751,43 @@ Links = @(
 }
 
 "@
+            }
+        }
+
+        Context "When .graphrunbook file name is provided" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'
+            $Runbook.AddActivity($Activity)
+            $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
+            $File = New-TemporaryFile
+            try
+            {
+                $SerializedRunbook | Out-File $File.FullName
+
+                It "Converts GraphRunbook to text" {
+                    $Text = Convert-GraphRunbookToPowerShellData -RunbookFileName $File.FullName
+
+                    $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity'
+        Type = 'Code'
+        Process = {
+            'Hello'
+        }
+    }
+)
+
+}
+
+"@
+                }
+            }
+            finally
+            {
+                Remove-Item $File -ErrorAction SilentlyContinue
             }
         }
     }
