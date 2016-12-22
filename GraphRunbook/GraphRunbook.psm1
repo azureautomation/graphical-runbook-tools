@@ -215,7 +215,6 @@ function Get-Indent($IndentLevel) {
 
 function IsDefaultValue($Value) {
     ($Value -eq $null) -or
-    (($Value -is [int]) -and ($Value -eq 0)) -or
     (($Value -is [bool]) -and ($Value -eq $false)) -or
     (($Value -is [Orchestrator.GraphRunbook.Model.Condition]) -and
         ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Disabled) -and
