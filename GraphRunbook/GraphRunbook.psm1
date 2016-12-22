@@ -416,6 +416,20 @@ function ConvertValueDescriptorToPsd($IndentLevel, [Orchestrator.GraphRunbook.Mo
     }
 }
 
+function ConvertLinkToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Link]$Value) {
+    $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
+    $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
+
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        From = $FromActivity.Name
+        To = $ToActivity.Name
+        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Stream = $Value.LinkStreamType
+        Type = $Value.LinkType
+        Condition = $Value.Condition
+    })
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -442,17 +456,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertValueDescriptorToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link]) {
-        $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
-        $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
-
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            From = $FromActivity.Name
-            To = $ToActivity.Name
-            Description = $(if ($Value.Description) { $Value.Description } else { $null })
-            Stream = $Value.LinkStreamType
-            Type = $Value.LinkType
-            Condition = $Value.Condition
-        })
+        ConvertLinkToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition]) {
         if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) {
