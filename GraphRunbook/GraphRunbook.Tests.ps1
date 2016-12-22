@@ -206,8 +206,7 @@ InModuleScope $sut {
     }
 
     Describe "Convert-GraphRunbookToPowerShellData" {
-        $AuthoringSdkDir = 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
-        Add-Type -Path $AuthoringSdkDir\Orchestrator.GraphRunbook.Model.dll
+        Add-GraphRunbookModelAssembly
 
         Context "When GraphRunbook is empty" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
