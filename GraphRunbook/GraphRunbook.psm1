@@ -78,14 +78,10 @@ function GetLatestJobByRunbookName($ResourceGroupName, $AutomationAccountName, $
 
 function Show-GraphRunbookActivityTraces {
 <#
-
 .SYNOPSIS
-
 Shows graphical runbook activity traces for an Azure Automation job
 
-
 .DESCRIPTION
-
 Graphical runbook activity tracing data is extremely helpful when testing and troubleshooting graphical runbooks in Azure Automation. Specifically, it can help the user determine the execution order of activities, any activity start and finish time, and any activity input and output data. Azure Automation saves this data encoded in JSON in the job Verbose stream.
 
 Even though this data is very valuable, it may not be directly human-readable in the raw format, especially when activities input and output large and complex objects. Show-GraphRunbookActivityTraces command simplifies this task. It retrieves activity tracing data from a specified Azure Automation job, then parses and displays this data in a user-friendly tree structure:
@@ -121,41 +117,26 @@ Prerequisites
         - Logging verbose records: *On*
         - Trace level: *Basic* or *Detailed*
 
-
 .PARAMETER ResourceGroupName
-
 Azure Resource Group name
 
-
 .PARAMETER AutomationAccountName
-
 Azure Automation Account name
 
-
 .PARAMETER JobId
-
 Azure Automation graphical runbook job ID
 
-
 .PARAMETER RunbookName
-
 Runbook name
 
-
 .EXAMPLE
-
 Show-GraphRunbookActivityTraces -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -JobId b15d38a1-ddea-49d1-bd90-407f66f282ef
 
-
 .LINK
-
 Source code: https://github.com/azureautomation/graphical-runbook-tools
 
-
 .LINK
-
 Azure Automation: https://azure.microsoft.com/services/automation
-
 #>
     [CmdletBinding()]
 
@@ -553,14 +534,10 @@ function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $Resou
 
 function Convert-GraphRunbookToPowerShellData {
 <#
-
 .SYNOPSIS
-
 Converts a graphical runbook to PowerShell data
 
-
 .DESCRIPTION
-
 Converts a graphical runbook to PowerShell data. The resulting representation contains the entire runbook definition in a human-readable and PowerShell-readable text format. It can be used for inspecting and documenting runbooks, storing them in a source control system, comparing different versions, etc. Furthermore, the resulting representation is valid PowerShell code that constructs a data structure with all the runbook content, so you can saved it in a .psd1 file, open it in any PowerShell editing tool, parse it with PowerShell, etc.
 
 IMPORTANT NOTE
@@ -574,64 +551,41 @@ Prerequisites
 
 2. Before invoking Convert-GraphRunbookToPowerShellData with RunbookName, ResourceGroupName, and AutomationAccountName parameters, make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet).
 
-
 .PARAMETER Runbook
-
 An instance of Orchestrator.GraphRunbook.Model.GraphRunbook type
 
-
 .PARAMETER GraphicalAuthoringSdkDirectory
-
 Microsoft Azure Automation Graphical Authoring SDK installation directory
 
-
 .PARAMETER RunbookFileName
-
 Runbook file name (.graphrunbook)
 
-
 .PARAMETER RunbookName
-
 Runbook name
 
-
 .PARAMETER Slog
-
 Specifies whether this cmdlet converts the draft or published content of the runbook. Valid values are:
-        
         -- Published
         -- Draft
 
 
 .PARAMETER ResourceGroupName
-
 Azure Resource Group name
 
-
 .PARAMETER AutomationAccountName
-
 Azure Automation Account name
 
-
 .EXAMPLE
-
 Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
-
 .EXAMPLE
-
 Convert-GraphRunbookToPowerShellData -Runbook $Runbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
 
-
 .LINK
-
 Source code: https://github.com/azureautomation/graphical-runbook-tools
 
-
 .LINK
-
 Azure Automation: https://azure.microsoft.com/services/automation
-
 #>
     [CmdletBinding()]
 
