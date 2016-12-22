@@ -1,17 +1,14 @@
-function ExpectEvent($GraphTraceRecord, $ExpectedEventType, $ExpectedActivityName)
-{
+function ExpectEvent($GraphTraceRecord, $ExpectedEventType, $ExpectedActivityName) {
     $ActualEventType = $GraphTraceRecord.Event
     $ActualActivityName = $GraphTraceRecord.Activity
 
     if (($ActualEventType -ne $ExpectedEventType) -or
-        (($ExpectedActivityName -ne $null) -and ($ActualActivityName -ne $ExpectedActivityName)))
-    {
+            (($ExpectedActivityName -ne $null) -and ($ActualActivityName -ne $ExpectedActivityName))) {
         throw "Unexpected event $ActualEventType/$ActualActivityName (expected $ExpectedEventType/$ExpectedActivityName)"
     }
 }
 
-function GetGraphTraces($ResourceGroupName, $AutomationAccountName, $JobId)
-{
+function GetGraphTraces($ResourceGroupName, $AutomationAccountName, $JobId) {
     Write-Verbose "Retrieving traces for job $JobId..."
 
     $GraphTracePrefix = "GraphTrace:"
@@ -29,20 +26,17 @@ function GetGraphTraces($ResourceGroupName, $AutomationAccountName, $JobId)
         ConvertFrom-Json
 }
 
-function GetActivityExecutionInstances($GraphTraces)
-{
+function GetActivityExecutionInstances($GraphTraces) {
     $GraphTracePos = 0
 
-    while ($GraphTracePos -lt $GraphTraces.Count)
-    {
+    while ($GraphTracePos -lt $GraphTraces.Count) {
         ExpectEvent $GraphTraces[$GraphTracePos] 'ActivityStart'
         $Activity = $GraphTraces[$GraphTracePos].Activity
         $Start = $GraphTraces[$GraphTracePos].Time
         $GraphTracePos += 1
 
         $Input = $null
-        if ($GraphTraces[$GraphTracePos].Event -eq 'ActivityInput')
-        {
+        if ($GraphTraces[$GraphTracePos].Event -eq 'ActivityInput') {
             ExpectEvent $GraphTraces[$GraphTracePos] 'ActivityInput' $Activity
             $Input = $GraphTraces[$GraphTracePos].Values.Data
             $GraphTracePos += 1
@@ -62,8 +56,7 @@ function GetActivityExecutionInstances($GraphTraces)
         Add-Member -InputObject $ActivityExecution -MemberType NoteProperty -Name Start -Value (Get-Date $Start)
         Add-Member -InputObject $ActivityExecution -MemberType NoteProperty -Name End -Value (Get-Date $End)
         Add-Member -InputObject $ActivityExecution -MemberType NoteProperty -Name Duration -Value ([System.TimeSpan]::FromSeconds($DurationSeconds))
-        if ($Input)
-        {
+        if ($Input) {
             Add-Member -InputObject $ActivityExecution -MemberType NoteProperty -Name Input -Value $Input
         }
         Add-Member -InputObject $ActivityExecution -MemberType NoteProperty -Name Output -Value $Output
@@ -72,8 +65,7 @@ function GetActivityExecutionInstances($GraphTraces)
     }
 }
 
-function GetLatestJobByRunbookName($ResourceGroupName, $AutomationAccountName, $RunbookName)
-{
+function GetLatestJobByRunbookName($ResourceGroupName, $AutomationAccountName, $RunbookName) {
     Write-Verbose "Looking for the latest job for runbook $RunbookName..."
 
     Get-AzureRmAutomationJob `
@@ -84,8 +76,7 @@ function GetLatestJobByRunbookName($ResourceGroupName, $AutomationAccountName, $
         select -First 1
 }
 
-function Show-GraphRunbookActivityTraces
-{
+function Show-GraphRunbookActivityTraces {
 <#
 
 .SYNOPSIS
@@ -193,37 +184,30 @@ Azure Automation: https://azure.microsoft.com/services/automation
         $AutomationAccountName
     )
 
-    process
-    {
-        switch ($PSCmdlet.ParameterSetName)
-        {
-            "ByJobId"
-            {
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            "ByJobId" {
                 $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
             }
 
-            "ByRunbookName"
-            {
+            "ByRunbookName" {
                 $Job = GetLatestJobByRunbookName `
                             -RunbookName $RunbookName `
                             -ResourceGroupName $ResourceGroupName `
                             -AutomationAccountName $AutomationAccountName
 
-                if ($Job)
-                {
+                if ($Job) {
                     $JobId = $Job.JobId
                     $GraphTraces = GetGraphTraces $ResourceGroupName $AutomationAccountName $JobId
                 }
-                else
-                {
+                else {
                     Write-Error -Message "No job found for runbook $RunbookName."
                 }
             }
         }
 
         $ActivityExecutionInstances = GetActivityExecutionInstances $GraphTraces
-        if ($ActivityExecutionInstances)
-        {
+        if ($ActivityExecutionInstances) {
             $ObjectToShow = New-Object PsObject -Property @{
                 'Job ID' = $JobId
                 'Activity execution instances' = $ActivityExecutionInstances
@@ -231,37 +215,31 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
             Show-Object -InputObject @($ObjectToShow)
         }
-        else
-        {
+        else {
             Write-Error -Message ('No activity traces found. Make sure activity tracing and ' +
                                   'logging Verbose stream are enabled in the runbook configuration.')
         }
     }
 }
 
-function Get-ActivityText([Orchestrator.GraphRunbook.Model.Activity]$Activity)
-{
+function Get-ActivityText([Orchestrator.GraphRunbook.Model.Activity]$Activity) {
     "    @{`r`n        Name = '$($Activity.Name)'`r`n    }`r`n"
 }
 
-function Get-ActivitiesText([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook)
-{
+function Get-ActivitiesText([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
     $Result = ''
-    foreach ($Activity in $Runbook.Activities)
-    {
+    foreach ($Activity in $Runbook.Activities) {
         $Result += "$(Get-ActivityText $Activity)"
     }
 
     $Result
 }
 
-function Get-Indent($IndentLevel)
-{
+function Get-Indent($IndentLevel) {
     ' ' * $IndentLevel * 4
 }
 
-function IsDefaultValue($Value)
-{
+function IsDefaultValue($Value) {
     ($Value -eq $null) -or
     (($Value -is [int]) -and ($Value -eq 0)) -or
     (($Value -is [bool]) -and ($Value -eq $false)) -or
@@ -270,8 +248,7 @@ function IsDefaultValue($Value)
         ([string]::IsNullOrEmpty($Value.Expression)))
 }
 
-function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId)
-{
+function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId) {
     $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
     if (-not $Result)
     {
@@ -280,18 +257,14 @@ function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook
     $Result
 }
 
-function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value)
-{
-        if ($Value.Count -eq 0)
-        {
+function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value) {
+        if ($Value.Count -eq 0) {
             '@()'
         }
-        else
-        {
+        else {
             $Result = "@(`r`n"
             $NextIndentLevel = $IndentLevel + 1
-            foreach ($Item in $Value)
-            {
+            foreach ($Item in $Value) {
                 $Result += "$(Get-Indent $NextIndentLevel)$(ConvertValueToPsd -IndentLevel $NextIndentLevel -Value $Item)`r`n"
             }
             $Result += "$(Get-Indent $IndentLevel))"
@@ -299,14 +272,11 @@ function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value)
         }
 }
 
-function ConvertDictionaryToPsd($IndentLevel, [System.Collections.IDictionary]$Value)
-{
+function ConvertDictionaryToPsd($IndentLevel, [System.Collections.IDictionary]$Value) {
     $Result = "@{`r`n"
     $NextIndentLevel = $IndentLevel + 1
-    foreach ($Entry in $Value.GetEnumerator())
-    {
-        if (-not (IsDefaultValue $Entry.Value))
-        {
+    foreach ($Entry in $Value.GetEnumerator()) {
+        if (-not (IsDefaultValue $Entry.Value)) {
             $Result += "$(ConvertNamedValueToPsd -IndentLevel $NextIndentLevel -Name $Entry.Key -Value $Entry.Value)`r`n"
         }
     }
@@ -314,36 +284,28 @@ function ConvertDictionaryToPsd($IndentLevel, [System.Collections.IDictionary]$V
     $Result
 }
 
-function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value)
-{
+function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     $NextIndentLevel = $IndentLevel + 1
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
 }
 
-function ConvertValueToPsd($IndentLevel, $Value)
-{
-    if ($Value -eq $null)
-    {
+function ConvertValueToPsd($IndentLevel, $Value) {
+    if ($Value -eq $null) {
         '$null'
     }
-    elseif ($Value -is [System.Collections.IList])
-    {
+    elseif ($Value -is [System.Collections.IList]) {
         ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [scriptblock])
-    {
+    elseif ($Value -is [scriptblock]) {
         ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [hashtable])
-    {
+    elseif ($Value -is [hashtable]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [System.Collections.Specialized.OrderedDictionary])
-    {
+    elseif ($Value -is [System.Collections.Specialized.OrderedDictionary]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Description = $Value.Description
@@ -358,8 +320,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
             PositionY = $Value.PositionY
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Description = $Value.Description
@@ -373,8 +334,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
             PositionY = $Value.PositionY
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Description = $Value.Description
@@ -388,8 +348,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
             PositionY = $Value.PositionY
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Description = $Value.Description
@@ -399,63 +358,53 @@ function ConvertValueToPsd($IndentLevel, $Value)
             PositionY = $Value.PositionY
         })
     }
-    elseif ($Value -is [System.Collections.IDictionary])
-    {
+    elseif ($Value -is [System.Collections.IDictionary]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IConstantValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IConstantValueDescriptor]) {
         ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value.Value
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'ActivityOutput'
             Activity = $Value.ActivityName
             FieldPath = $Value.FieldPath
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor]) {
         ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'RunbookParameter'
             Name = $Value.ParameterName
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'AutomationCertificate'
             Name = $Value.CertificateName
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'AutomationCredential'
             Name = $Value.CredentialName
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'AutomationConnection'
             Name = $Value.ConnectionName
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             SourceType = 'AutomationVariable'
             Name = $Value.VariableName
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link]) {
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
         $ToActivity = Get-ActivityById $Runbook $Value.DestinationActivityEntityId
 
@@ -466,29 +415,24 @@ function ConvertValueToPsd($IndentLevel, $Value)
             Condition = $Value.Condition
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition])
-    {
-        if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled)
-        {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition]) {
+        if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) {
             ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
         }
-        else
-        {
+        else {
             ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
                 Mode = $Value.Mode
                 Expression = [scriptblock]::Create($Value.Expression)
             })
         }
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Text = $Value.Text
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter])
-    {
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Description = $Value.Description
@@ -496,76 +440,60 @@ function ConvertValueToPsd($IndentLevel, $Value)
             DefaultValue = $Value.DefaultValue
         })
     }
-    elseif ($Value -is [int])
-    {
+    elseif ($Value -is [int]) {
         "$Value"
     }
-    elseif ($Value -is [bool])
-    {
-        if ($Value)
-        {
+    elseif ($Value -is [bool]) {
+        if ($Value) {
             '$true'
         }
-        else
-        {
+        else {
             '$false'
         }
     }
-    else
-    {
+    else {
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"
     }
 }
 
-function ConvertNamedValueToPsd($IndentLevel, $Name, $Value)
-{
+function ConvertNamedValueToPsd($IndentLevel, $Name, $Value) {
     "$(Get-Indent $IndentLevel)$Name = $(ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value)"
 }
 
-function ConvertOptionalSectionToPsd($Name, $Data)
-{
-    if ($Data)
-    {
+function ConvertOptionalSectionToPsd($Name, $Data) {
+    if ($Data) {
         "$(ConvertNamedValueToPsd -IndentLevel 0 -Name $Name -Value $Data)`r`n`r`n"
     }
-    else
-    {
+    else {
         ''
     }
 }
 
-function Get-GraphicalAuthoringSdkDirectoryFromRegistry
-{
+function Get-GraphicalAuthoringSdkDirectoryFromRegistry {
     Get-ItemPropertyValue -Path HKLM:\SOFTWARE\WOW6432Node\Microsoft\AzureAutomation\GraphicalAuthoringSDK -Name InstallPath
 }
 
-function Add-GraphRunbookModelAssembly($GraphicalAuthoringSdkDirectory)
-{
-    if (-not $GraphicalAuthoringSdkDirectory)
-    {
+function Add-GraphRunbookModelAssembly($GraphicalAuthoringSdkDirectory) {
+    if (-not $GraphicalAuthoringSdkDirectory) {
         $GraphicalAuthoringSdkDirectory = Get-GraphicalAuthoringSdkDirectoryFromRegistry
     }
 
     $ModelAssemblyPath = Join-Path $GraphicalAuthoringSdkDirectory 'Orchestrator.GraphRunbook.Model.dll'
 
-    if (Test-Path $ModelAssemblyPath -PathType Leaf)
-    {
+    if (Test-Path $ModelAssemblyPath -PathType Leaf) {
         Add-Type -Path $ModelAssemblyPath
     }
-    else
-    {
+    else {
         Write-Warning ("Assembly not found: $ModelAssemblyPath. Install Microsoft Azure Automation Graphical Authoring SDK " +
             "(https://www.microsoft.com/en-us/download/details.aspx?id=50734) and provide the installation directory path " +
             "in the GraphicalAuthoringSdkDirectory parameter.")
     }
 }
 
-function Get-GraphRunbookFromFile($FileName)
-{
+function Get-GraphRunbookFromFile($FileName) {
     $SerializedRunbook = Get-Content -Path $FileName | Out-String
     $RunbookContainer = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::DeserializeRunbookContainer($SerializedRunbook)
-    if ($RunbookContainer.SchemaVersion.Major -gt 1)
-    {
+    if ($RunbookContainer.SchemaVersion.Major -gt 1) {
         Write-Warning ("Runbook $FileName is serialized using schema version $($RunbookContainer.SchemaVersion). " +
             "Schema versions higher than 1.* may not be supported.")
     }
@@ -573,8 +501,7 @@ function Get-GraphRunbookFromFile($FileName)
     [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::GetRunbook($RunbookContainer)
 }
 
-function New-TemporaryDirectory
-{
+function New-TemporaryDirectory {
     $parent = [System.IO.Path]::GetTempPath()
     [string]$name = [System.Guid]::NewGuid()
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
@@ -583,8 +510,8 @@ function New-TemporaryDirectory
 function Convert-GraphRunbookObjectToPowerShellData(
     [Parameter(Mandatory = $true)]
     [Orchestrator.GraphRunbook.Model.GraphRunbook]
-    $Runbook)
-{
+    $Runbook) {
+
     $Result = "@{`r`n`r`n"
     $Result += ConvertOptionalSectionToPsd -Name Parameters -Data $Runbook.Parameters
     $Result += ConvertOptionalSectionToPsd -Name Comments -Data $Runbook.Comments
@@ -596,19 +523,16 @@ function Convert-GraphRunbookObjectToPowerShellData(
     $Result
 }
 
-function Convert-GraphRunbookFileToPowerShellData($RunbookFileName)
-{
+function Convert-GraphRunbookFileToPowerShellData($RunbookFileName) {
     Write-Verbose "Converting runbook from file $RunbookFileName"
     $Runbook = Get-GraphRunbookFromFile -FileName $RunbookFileName
     Convert-GraphRunbookObjectToPowerShellData $Runbook
 }
 
-function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName)
-{
+function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName) {
     $OutputFolder = New-TemporaryDirectory
     Write-Verbose "Created temporary directory: $OutputFolder"
-    try
-    {
+    try {
         Write-Verbose "Exporting runbook '$RunbookName' to temporary directory '$OutputFolder'"
         $RunbookFile = Export-AzureRMAutomationRunbook `
             -Name $RunbookName `
@@ -622,14 +546,12 @@ function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $Resou
 
         Convert-GraphRunbookFileToPowerShellData $FullFileName
     }
-    finally
-    {
+    finally {
         Remove-Item $OutputFolder -Recurse -Force
     }
 }
 
-function Convert-GraphRunbookToPowerShellData
-{
+function Convert-GraphRunbookToPowerShellData {
 <#
 
 .SYNOPSIS
@@ -756,20 +678,16 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
     Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
 
-    switch ($PSCmdlet.ParameterSetName)
-    {
-        'ByGraphRunbook'
-        {
+    switch ($PSCmdlet.ParameterSetName) {
+        'ByGraphRunbook' {
             Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
         }
 
-        'ByRunbookFileName'
-        {
+        'ByRunbookFileName' {
             Convert-GraphRunbookFileToPowerShellData $RunbookFileName -ErrorAction Stop
         }
 
-        'ByRunbookName'
-        {
+        'ByRunbookName' {
             Convert-GraphRunbookInAzureToPowerShellData `
                 -RunbookName $RunbookName `
                 -Slot $Slot `

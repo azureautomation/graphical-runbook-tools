@@ -11,19 +11,17 @@ InModuleScope $sut {
         $TestResourceGroup = 'TestResourceGroupName'
         $TestAutomationAccount = 'TestAccountName'
 
-        $TestJobOutputRecords =
-            @(
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityStart",Time:"2016-11-23 23:04"}' } },
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityInput",Time:"2016-11-23 23:05",Values:{Data:{Input1:"A",Input2:"B"}}}' } },
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityOutput",Time:"2016-11-23 23:05"}' } },
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityEnd",Time:"2016-11-23 23:06",DurationSeconds:1.2}' } },
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityStart",Time:"2016-11-23 23:09"}' } },
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityOutput",Time:"2016-11-23 23:12",Values:{Data:[2,7,1]}}' } },
-                @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityEnd",Time:"2016-11-23 23:13",DurationSeconds:7}' } }
-            )
+        $TestJobOutputRecords = @(
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityStart",Time:"2016-11-23 23:04"}' } },
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityInput",Time:"2016-11-23 23:05",Values:{Data:{Input1:"A",Input2:"B"}}}' } },
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityOutput",Time:"2016-11-23 23:05"}' } },
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity1",Event:"ActivityEnd",Time:"2016-11-23 23:06",DurationSeconds:1.2}' } },
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityStart",Time:"2016-11-23 23:09"}' } },
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityOutput",Time:"2016-11-23 23:12",Values:{Data:[2,7,1]}}' } },
+            @{ Value = @{ Message = 'GraphTrace:{Activity:"Activity2",Event:"ActivityEnd",Time:"2016-11-23 23:13",DurationSeconds:7}' } }
+        )
 
-        function VerifyShowObjectInput($InputObject)
-        {
+        function VerifyShowObjectInput($InputObject) {
             $InputObject | Should not be $null
             $InputObject | Measure-Object | % Count | Should be 1
 
@@ -448,8 +446,7 @@ Activities = @(
             }
         }
 
-        function CreateRunbookWithCommandActivityWithParameter($ValueDescriptor)
-        {
+        function CreateRunbookWithCommandActivityWithParameter($ValueDescriptor) {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
             $CommandActivityType.CommandName = 'Do-Something'
@@ -460,8 +457,7 @@ Activities = @(
             $Runbook
         }
 
-        function CreateExpectedRunbookTextWithCommandActivityWithParameter($ParameterText)
-        {
+        function CreateExpectedRunbookTextWithCommandActivityWithParameter($ParameterText) {
 @"
 @{
 
@@ -760,8 +756,7 @@ Links = @(
             $Runbook.AddActivity($Activity)
             $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
             $File = New-TemporaryFile
-            try
-            {
+            try {
                 $SerializedRunbook | Out-File $File.FullName
 
                 It "Converts GraphRunbook to text" {
@@ -782,8 +777,7 @@ Activities = @(
 "@
                 }
             }
-            finally
-            {
+            finally {
                 Remove-Item $File -ErrorAction SilentlyContinue
             }
         }
@@ -799,7 +793,7 @@ Activities = @(
                     $AutomationAccountName | Should be $AutomationAccountName > $null
                     $Name | Should be $TestRunbookName > $null
                     $Slot | Should be 'Published' > $null
-                    
+
                     $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
                     $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'
                     [void]$Runbook.AddActivity($Activity)
