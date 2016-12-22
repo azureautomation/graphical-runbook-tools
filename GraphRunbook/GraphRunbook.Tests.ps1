@@ -663,18 +663,9 @@ Activities = @(
             $Runbook
         }
 
-        Context "When GraphRunbook contains regular link" {
-            $Runbook = CreateRunbookWithLink {
-                param($Link)
-
-                $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
-                $Link.LinkStreamType = 'Output'
-            }
-
-            It "Converts GraphRunbook to text" {
-                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
-
-                $Text | Should be @"
+        function CreateExpectedRunbookWithLinkText($LinkText)
+        {
+@"
 @{
 
 Activities = @(
@@ -689,7 +680,27 @@ Activities = @(
 )
 
 Links = @(
-    @{
+    $LinkText
+)
+
+}
+
+"@
+        }
+
+        Context "When GraphRunbook contains regular link" {
+            $Runbook = CreateRunbookWithLink {
+                param($Link)
+
+                $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
+                $Link.LinkStreamType = 'Output'
+            }
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookWithLinkText @"
+@{
         From = 'Activity A'
         To = 'Activity B'
         Type = 'Sequence'
@@ -697,11 +708,7 @@ Links = @(
             `$ActivityOutput['A'].Count -gt 0
         }
     }
-)
-
-}
-
-"@
+"@)
             }
         }
 
@@ -716,22 +723,8 @@ Links = @(
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
 
-                $Text | Should be @"
+                $Text | Should be (CreateExpectedRunbookWithLinkText @"
 @{
-
-Activities = @(
-    @{
-        Name = 'Activity A'
-        Type = 'Code'
-    }
-    @{
-        Name = 'Activity B'
-        Type = 'Code'
-    }
-)
-
-Links = @(
-    @{
         From = 'Activity A'
         To = 'Activity B'
         Stream = 'Error'
@@ -740,11 +733,7 @@ Links = @(
             `$ActivityOutput['A'].Count -gt 0
         }
     }
-)
-
-}
-
-"@
+"@)
             }
         }
 
