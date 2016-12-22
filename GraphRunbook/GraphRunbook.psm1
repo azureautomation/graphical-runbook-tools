@@ -203,19 +203,6 @@ Azure Automation: https://azure.microsoft.com/services/automation
     }
 }
 
-function Get-ActivityText([Orchestrator.GraphRunbook.Model.Activity]$Activity) {
-    "    @{`r`n        Name = '$($Activity.Name)'`r`n    }`r`n"
-}
-
-function Get-ActivitiesText([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
-    $Result = ''
-    foreach ($Activity in $Runbook.Activities) {
-        $Result += "$(Get-ActivityText $Activity)"
-    }
-
-    $Result
-}
-
 function Get-Indent($IndentLevel) {
     ' ' * $IndentLevel * 4
 }
