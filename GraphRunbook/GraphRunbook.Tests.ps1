@@ -646,19 +646,30 @@ Activities = @(
             }
         }
 
-        Context "When GraphRunbook contains regular link" {
+        function CreateRunbookWithLink([scriptblock]$SetupLink)
+        {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
             $ActivityA = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity A'
-            $Runbook.AddActivity($ActivityA)
+            [void]$Runbook.AddActivity($ActivityA)
 
             $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
-            $Runbook.AddActivity($ActivityB)
+            [void]$Runbook.AddActivity($ActivityB)
 
             $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
-            $LinkAtoB.Condition = '$ActivityOutput[''A''].Count -gt 0'
-            $LinkAtoB.LinkStreamType = 'Output'
-            $Runbook.AddLink($LinkAtoB)
+            $SetupLink.Invoke($LinkAtoB)
+            [void]$Runbook.AddLink($LinkAtoB)
+
+            $Runbook
+        }
+
+        Context "When GraphRunbook contains regular link" {
+            $Runbook = CreateRunbookWithLink {
+                param($Link)
+
+                $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
+                $Link.LinkStreamType = 'Output'
+            }
 
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
@@ -695,18 +706,12 @@ Links = @(
         }
 
         Context "When GraphRunbook contains error link" {
-            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
-
-            $ActivityA = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity A'
-            $Runbook.AddActivity($ActivityA)
-
-            $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
-            $Runbook.AddActivity($ActivityB)
-
-            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
-            $LinkAtoB.Condition = '$ActivityOutput[''A''].Count -gt 0'
-            $LinkAtoB.LinkStreamType = 'Error'
-            $Runbook.AddLink($LinkAtoB)
+            $Runbook = CreateRunbookWithLink {
+                param($Link)
+                
+                $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
+                $Link.LinkStreamType = 'Error'
+            }
 
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
