@@ -463,6 +463,17 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
     }
+    elseif ($Value -is [bool]) {
+        if ($Value) {
+            '$true'
+        }
+        else {
+            '$false'
+        }
+    }
+    elseif ($Value -is [int]) {
+        "$Value"
+    }
     elseif ($Value -is [System.Collections.IList]) {
         ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
     }
@@ -474,6 +485,9 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     }
     elseif ($Value -is [System.Collections.Specialized.OrderedDictionary]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [System.Tuple`2[[int], [int]]]) {
+        ConvertTuple2IntToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]) {
         ConvertActivityToPsd -IndentLevel $IndentLevel -Value $Value
@@ -495,20 +509,6 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter]) {
         ConvertParameterToPsd -IndentLevel $IndentLevel -Value $Value
-    }
-    elseif ($Value -is [int]) {
-        "$Value"
-    }
-    elseif ($Value -is [bool]) {
-        if ($Value) {
-            '$true'
-        }
-        else {
-            '$false'
-        }
-    }
-    elseif ($Value -is [System.Tuple`2[[int], [int]]]) {
-        ConvertTuple2IntToPsd -IndentLevel $IndentLevel -Value $Value
     }
     else {
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"
