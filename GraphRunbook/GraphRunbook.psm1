@@ -146,6 +146,11 @@ Azure Automation Account name
 Azure Automation graphical runbook job ID
 
 
+.PARAMETER RunbookName
+
+Runbook name
+
+
 .EXAMPLE
 
 Show-GraphRunbookActivityTraces -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -JobId b15d38a1-ddea-49d1-bd90-407f66f282ef
@@ -571,6 +576,32 @@ function Convert-GraphRunbookObjectToPowerShellData(
     $Result
 }
 
+function Convert-GraphRunbookFileToPowerShellData($RunbookFileName)
+{
+    $Runbook = Get-GraphRunbookFromFile -FileName $RunbookFileName
+    Convert-GraphRunbookObjectToPowerShellData $Runbook
+}
+
+function Get-GraphRunbookFromFile($FileName)
+{
+    $SerializedRunbook = Get-Content -Path $FileName | Out-String
+    $RunbookContainer = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::DeserializeRunbookContainer($SerializedRunbook)
+    if ($RunbookContainer.SchemaVersion.Major -gt 1)
+    {
+        Write-Warning ("Runbook $FileName is serialized using schema version $($RunbookContainer.SchemaVersion). " +
+            "Schema versions higher than 1.* may not be supported.")
+    }
+
+    [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::GetRunbook($RunbookContainer)
+}
+
+function New-TemporaryDirectory
+{
+    $parent = [System.IO.Path]::GetTempPath()
+    [string]$name = [System.Guid]::NewGuid()
+    New-Item -ItemType Directory -Path (Join-Path $parent $name)
+}
+
 function Convert-GraphRunbookToPowerShellData
 {
 <#
@@ -591,7 +622,9 @@ Even though the resulting representation contains all the data from the original
 Prerequisites
 =============
 
-1. Microsoft Azure Automation Graphical Authoring SDK (download from https://www.microsoft.com/en-us/download/details.aspx?id=50734)
+1. Install Microsoft Azure Automation Graphical Authoring SDK (https://www.microsoft.com/en-us/download/details.aspx?id=50734)
+
+2. Before invoking Convert-GraphRunbookToPowerShellData with RunbookName, ResourceGroupName, and AutomationAccountName parameters, make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet).
 
 
 .PARAMETER Runbook
@@ -607,6 +640,29 @@ Microsoft Azure Automation Graphical Authoring SDK installation directory
 .PARAMETER RunbookFileName
 
 Runbook file name (.graphrunbook)
+
+
+.PARAMETER RunbookName
+
+Runbook name
+
+
+.PARAMETER Slog
+
+Specifies whether this cmdlet converts the draft or published content of the runbook. Valid values are:
+        
+        -- Published
+        -- Draft
+
+
+.PARAMETER ResourceGroupName
+
+Azure Resource Group name
+
+
+.PARAMETER AutomationAccountName
+
+Azure Automation Account name
 
 
 .EXAMPLE
@@ -645,6 +701,29 @@ Azure Automation: https://azure.microsoft.com/services/automation
         [string]
         $RunbookFileName,
 
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ByRunbookName')]
+        [string]
+        $RunbookName,
+
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ByRunbookName')]
+        [string]
+        $ResourceGroupName,
+
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ByRunbookName')]
+        [string]
+        $AutomationAccountName,
+
+        [Parameter(
+            ParameterSetName = 'ByRunbookName')]
+        [string]
+        $Slot = 'Published',
+
         [string]
         $GraphicalAuthoringSdkDirectory
     )
@@ -660,16 +739,27 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
         'ByRunbookFileName'
         {
-            $SerializedRunbook = Get-Content -Path $RunbookFileName | Out-String
-            $RunbookContainer = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::DeserializeRunbookContainer($SerializedRunbook)
-            if ($RunbookContainer.SchemaVersion.Major -gt 1)
-            {
-                Write-Warning ("Runbook $RunbookFileName is serialized using schema version $($RunbookContainer.SchemaVersion). " +
-                    "Schema versions higher than 1.* may not be supported.")
-            }
+            Convert-GraphRunbookFileToPowerShellData $RunbookFileName -ErrorAction Stop
+        }
 
-            $Runbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::GetRunbook($RunbookContainer)
-            Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
+        'ByRunbookName'
+        {
+            $OutputFolder = New-TemporaryDirectory
+            try
+            {
+                $RunbookFile = Export-AzureRMAutomationRunbook `
+                    -Name $RunbookName `
+                    -OutputFolder $OutputFolder `
+                    -Slot $Slot `
+                    -ResourceGroupName $ResourceGroupName `
+                    -AutomationAccountName $AutomationAccountName
+
+                Convert-GraphRunbookFileToPowerShellData $RunbookFile.FullName
+            }
+            finally
+            {
+                Remove-Item $OutputFolder -Recurse -Force
+            }
         }
     }
 }

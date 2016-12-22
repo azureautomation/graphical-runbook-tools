@@ -787,5 +787,50 @@ Activities = @(
                 Remove-Item $File -ErrorAction SilentlyContinue
             }
         }
+
+        Context "When runbook name is provided" {
+            $TestResourceGroup = 'TestResourceGroupName'
+            $TestAutomationAccount = 'TestAccountName'
+            $TestRunbookName = 'TestRunbookName'
+
+            Mock Export-AzureRMAutomationRunbook -Verifiable `
+                -MockWith {
+                    $ResourceGroupName | Should be $TestResourceGroup > $null
+                    $AutomationAccountName | Should be $AutomationAccountName > $null
+                    $Name | Should be $TestRunbookName > $null
+                    $Slot | Should be 'Published' > $null
+                    
+                    $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+                    $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'
+                    [void]$Runbook.AddActivity($Activity)
+                    $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
+                    $OutputFileName = Join-Path $OutputFolder "$Name.graphrunbook"
+                    $SerializedRunbook | Out-File $OutputFileName
+
+                    Get-Item -Path $OutputFileName
+                }
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData `
+                    -RunbookName $TestRunbookName `
+                    -ResourceGroupName $TestResourceGroup `
+                    -AutomationAccount $TestAutomationAccount 
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity'
+        Type = 'Code'
+    }
+)
+
+}
+
+"@
+                Assert-VerifiableMocks
+            }
+        }
     }
 }
