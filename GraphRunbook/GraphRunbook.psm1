@@ -442,6 +442,14 @@ function ConvertConditionToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Co
     }
 }
 
+function ConvertCommentToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Comment]$Value) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        Name = $Value.Name
+        Text = $Value.Text
+        Position = PreparePositionPropertyValue $Value
+    })
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -474,11 +482,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertConditionToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            Name = $Value.Name
-            Text = $Value.Text
-            Position = PreparePositionPropertyValue $Value
-        })
+        ConvertCommentToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
