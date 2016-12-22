@@ -265,9 +265,22 @@ function ConvertDictionaryToPsd($IndentLevel, [System.Collections.IDictionary]$V
     $Result
 }
 
+function ConvertTuple2IntToPsd($IndentLevel, [System.Tuple`2[[int], [int]]]$Value) {
+    "$($Value.Item1), $($Value.Item2)"
+}
+
 function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     $NextIndentLevel = $IndentLevel + 1
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
+}
+
+function PreparePosition([Orchestrator.GraphRunbook.Model.IPositionedEntity]$Positioned) {
+    if (($Positioned.PositionX -eq 0) -and ($Positioned.PositionY -eq 0)) {
+        $null
+    }
+    else {
+        [System.Tuple]::Create($Positioned.PositionX, $Positioned.PositionY)
+    }
 }
 
 function ConvertValueToPsd($IndentLevel, $Value) {
@@ -297,8 +310,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
             LoopExitCondition = $Value.LoopExitCondition
-            PositionX = $Value.PositionX
-            PositionY = $Value.PositionY
+            Position = PreparePosition -Positioned $Value
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
@@ -312,8 +324,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
             LoopExitCondition = $Value.LoopExitCondition
-            PositionX = $Value.PositionX
-            PositionY = $Value.PositionY
+            Position = PreparePosition -Positioned $Value
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
@@ -326,8 +337,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
             LoopExitCondition = $Value.LoopExitCondition
-            PositionX = $Value.PositionX
-            PositionY = $Value.PositionY
+            Position = PreparePosition -Positioned $Value
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
@@ -336,8 +346,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'Junction'
             CheckpointAfter = $Value.CheckpointAfter
-            PositionX = $Value.PositionX
-            PositionY = $Value.PositionY
+            Position = PreparePosition -Positioned $Value
         })
     }
     elseif ($Value -is [System.Collections.IDictionary]) {
@@ -414,6 +423,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
             Text = $Value.Text
+            Position = PreparePosition -Positioned $Value
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter]) {
@@ -434,6 +444,9 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         else {
             '$false'
         }
+    }
+    elseif ($Value -is [System.Tuple`2[[int], [int]]]) {
+        ConvertTuple2IntToPsd -IndentLevel $IndentLevel -Value $Value
     }
     else {
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"

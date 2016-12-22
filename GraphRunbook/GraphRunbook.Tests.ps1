@@ -297,8 +297,7 @@ Activities = @(
         LoopExitCondition = {
             `$RetryData.NumberOfAttempts -gt 5
         }
-        PositionX = 12
-        PositionY = 456
+        Position = 12, 456
     }
 )
 
@@ -352,8 +351,7 @@ Activities = @(
         LoopExitCondition = {
             `$RetryData.NumberOfAttempts -gt 5
         }
-        PositionX = 12
-        PositionY = 456
+        Position = 12, 456
     }
 )
 
@@ -405,8 +403,7 @@ Activities = @(
         LoopExitCondition = {
             `$RetryData.NumberOfAttempts -gt 5
         }
-        PositionX = 12
-        PositionY = 456
+        Position = 12, 456
     }
 )
 
@@ -437,8 +434,7 @@ Activities = @(
         Description = 'Activity description'
         Type = 'Junction'
         CheckpointAfter = `$true
-        PositionX = 12
-        PositionY = 456
+        Position = 12, 456
     }
 )
 
