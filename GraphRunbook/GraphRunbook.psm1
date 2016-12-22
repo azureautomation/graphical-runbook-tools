@@ -209,6 +209,14 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
 #region Convert-GraphRunbookToPowerShellData
 
+function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId) {
+    $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
+    if (-not $Result) {
+        throw "Cannot find activity by entity ID: $ActivityId"
+    }
+    $Result
+}
+
 function Get-Indent($IndentLevel) {
     ' ' * $IndentLevel * 4
 }
@@ -220,14 +228,6 @@ function IsDefaultValue($Value) {
         ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Disabled) -and
         ([string]::IsNullOrEmpty($Value.Expression))) -or
     (($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]) -and ($Value -eq [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]::Output))
-}
-
-function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId) {
-    $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
-    if (-not $Result) {
-        throw "Cannot find activity by entity ID: $ActivityId"
-    }
-    $Result
 }
 
 function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value) {
