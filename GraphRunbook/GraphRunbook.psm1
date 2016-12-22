@@ -283,6 +283,15 @@ function PreparePosition([Orchestrator.GraphRunbook.Model.IPositionedEntity]$Pos
     }
 }
 
+function SkipIfNullOrEmptyString($Value) {
+    if ([string]::IsNullOrEmpty($Value)) {
+        $null
+    }
+    else {
+        $Value
+    }
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -318,7 +327,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             Name = $Value.Name
             Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'Command'
-            ModuleName = $Value.CommandType.ModuleName
+            ModuleName = SkipIfNullOrEmptyString $Value.CommandType.ModuleName
             CommandName = $Value.CommandType.CommandName
             Parameters = $Value.Parameters
             CheckpointAfter = $Value.CheckpointAfter
