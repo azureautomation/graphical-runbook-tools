@@ -430,6 +430,18 @@ function ConvertLinkToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Link]$V
     })
 }
 
+function ConvertConditionToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Condition]$Value) {
+    if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) {
+        ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+    }
+    else {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+            Mode = $Value.Mode
+            Expression = [scriptblock]::Create($Value.Expression)
+        })
+    }
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -459,15 +471,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertLinkToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Condition]) {
-        if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) {
-            ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
-        }
-        else {
-            ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-                Mode = $Value.Mode
-                Expression = [scriptblock]::Create($Value.Expression)
-            })
-        }
+        ConvertConditionToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Comment]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
