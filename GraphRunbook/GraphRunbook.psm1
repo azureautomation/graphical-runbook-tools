@@ -598,6 +598,9 @@ Source code: https://github.com/azureautomation/graphical-runbook-tools
 
 .LINK
 Azure Automation: https://azure.microsoft.com/services/automation
+
+.LINK
+Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en-us/download/details.aspx?id=50734
 #>
     [CmdletBinding()]
 
