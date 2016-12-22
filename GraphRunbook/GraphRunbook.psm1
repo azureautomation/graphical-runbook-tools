@@ -221,6 +221,33 @@ function Get-Indent($IndentLevel) {
     ' ' * $IndentLevel * 4
 }
 
+function PreparePositionPropertyValue([Orchestrator.GraphRunbook.Model.IPositionedEntity]$Value) {
+    if (($Value.PositionX -eq 0) -and ($Value.PositionY -eq 0)) {
+        $null
+    }
+    else {
+        [System.Tuple]::Create($Value.PositionX, $Value.PositionY)
+    }
+}
+
+function PrepareStringPropertyValue($Value) {
+    if ([string]::IsNullOrEmpty($Value)) {
+        $null
+    }
+    else {
+        $Value
+    }
+}
+
+function PrepareDictionaryPropertyValue($Value) {
+    if (($Value -eq $null) -or ($Value.Count -eq 0)) {
+        $null
+    }
+    else {
+        $Value
+    }
+}
+
 function IsDefaultValue($Value) {
     ($Value -eq $null) -or
     (($Value -is [bool]) -and ($Value -eq $false)) -or
@@ -264,33 +291,6 @@ function ConvertTuple2IntToPsd($IndentLevel, [System.Tuple`2[[int], [int]]]$Valu
 function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     $NextIndentLevel = $IndentLevel + 1
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
-}
-
-function PreparePositionPropertyValue([Orchestrator.GraphRunbook.Model.IPositionedEntity]$Value) {
-    if (($Value.PositionX -eq 0) -and ($Value.PositionY -eq 0)) {
-        $null
-    }
-    else {
-        [System.Tuple]::Create($Value.PositionX, $Value.PositionY)
-    }
-}
-
-function PrepareStringPropertyValue($Value) {
-    if ([string]::IsNullOrEmpty($Value)) {
-        $null
-    }
-    else {
-        $Value
-    }
-}
-
-function PrepareDictionaryPropertyValue($Value) {
-    if (($Value -eq $null) -or ($Value.Count -eq 0)) {
-        $null
-    }
-    else {
-        $Value
-    }
 }
 
 function ConvertValueToPsd($IndentLevel, $Value) {
