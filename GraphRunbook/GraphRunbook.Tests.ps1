@@ -774,9 +774,6 @@ Activities = @(
     @{
         Name = 'Activity'
         Type = 'Code'
-        Process = {
-            'Hello'
-        }
     }
 )
 
