@@ -293,6 +293,25 @@ function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
 }
 
+function GetActivityTypeName([Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Activity)
+{
+    if ($Activity -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
+        'Code'
+    }
+    elseif ($Activity -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
+        'Command'
+    }
+    elseif ($Activity -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
+        'InvokeRunbook'
+    }
+    elseif ($Activity -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
+        'Junction'
+    }
+    else {
+        throw "Activity '$($Activity.Name)' is of unknown type: $($Activity.GetType().FullName)"
+    }
+}
+
 function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Value) {
     $Properties = [ordered]@{ }
     $Properties.Add('Name', $Value.Name)
@@ -300,21 +319,7 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
     $Description = PrepareStringPropertyValue $Value.Description
     $Properties.Add('Description', $Description)
 
-    if ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
-        $Properties.Add('Type', 'Code')
-    }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
-        $Properties.Add('Type', 'Command')
-    }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
-        $Properties.Add('Type', 'InvokeRunbook')
-    }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
-        $Properties.Add('Type', 'Junction')
-    }
-    else {
-        throw "Activity '$($Value.Name)' is of unknown type: $($Value.GetType().FullName)"
-    }
+    $Properties.Add('Type', $(GetActivityTypeName $Value))
 
     $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
     $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
