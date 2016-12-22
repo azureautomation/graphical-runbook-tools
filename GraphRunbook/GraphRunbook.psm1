@@ -541,7 +541,7 @@ function Convert-GraphRunbookToPowerShellData {
 Converts a graphical runbook to PowerShell data
 
 .DESCRIPTION
-Converts a graphical runbook to PowerShell data. The resulting representation contains the entire runbook definition in a human-readable and PowerShell-readable text format. It can be used for inspecting and documenting runbooks, storing them in a source control system, comparing different versions, etc. Furthermore, the resulting representation is valid PowerShell code that constructs a data structure with all the runbook content, so you can saved it in a .psd1 file, open it in any PowerShell editing tool, parse it with PowerShell, etc.
+Converts a graphical runbook to PowerShell data. The resulting representation contains the entire runbook definition in a human-readable and PowerShell-readable text format. It can be used for inspecting and documenting runbooks, storing them in a source control system, comparing different versions, etc. Furthermore, the resulting representation is valid PowerShell code that constructs a data structure with all the runbook content, so you can save it in a .psd1 file, open it in any PowerShell editing tool, parse it with PowerShell, etc.
 
 IMPORTANT NOTE
 ==============
@@ -550,7 +550,7 @@ Even though the resulting representation contains all the data from the original
 Prerequisites
 =============
 
-1. Install Microsoft Azure Automation Graphical Authoring SDK (https://www.microsoft.com/en-us/download/details.aspx?id=50734)
+1. Install Microsoft Azure Automation Graphical Authoring SDK (https://www.microsoft.com/en-us/download/details.aspx?id=50734).
 
 2. Before invoking Convert-GraphRunbookToPowerShellData with RunbookName, ResourceGroupName, and AutomationAccountName parameters, make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet).
 
@@ -566,11 +566,10 @@ Runbook file name (.graphrunbook)
 .PARAMETER RunbookName
 Runbook name
 
-.PARAMETER Slog
+.PARAMETER Slot
 Specifies whether this cmdlet converts the draft or published content of the runbook. Valid values are:
         -- Published
         -- Draft
-
 
 .PARAMETER ResourceGroupName
 Azure Resource Group name
@@ -579,15 +578,20 @@ Azure Resource Group name
 Azure Automation Account name
 
 .EXAMPLE
-Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook
+Output graphical runbook converted to PowerShell data.
 
 .EXAMPLE
-Convert-GraphRunbookToPowerShellData -Runbook $Runbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
+Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook | Out-File ./MyRunbook.psd1
+Save graphical runbook converted to PowerShell data as a .psd1 file.
 
 .EXAMPLE
-Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount |
-    ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } |
-    %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
+Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
+Specify the Microsoft Azure Automation Graphical Authoring SDK installation directory.
+
+.EXAMPLE
+Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
+Retrieve all published graphical runbooks from a specified Automation Account, convert them to PowerSHell data, and save the results to .psd1 files.
 
 .LINK
 Source code: https://github.com/azureautomation/graphical-runbook-tools
