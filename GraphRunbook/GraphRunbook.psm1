@@ -313,10 +313,15 @@ function AddLastCommonActivityProperties(
     $Properties.Add('Position', $Position)
 }
 
-function ConvertCodeActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]$Value) {
+function CreateActivityProperties([Orchestrator.GraphRunbook.Model.Activity]$Activity, [string]$ActivityType) {
     $Properties = [ordered]@{ }
-    AddFirstCommonActivityProperties -Properties $Properties -Activity $Value
-    $Properties.Add('Type', 'Code')
+    AddFirstCommonActivityProperties -Properties $Properties -Activity $Activity
+    $Properties.Add('Type', $ActivityType)
+    $Properties
+}
+
+function ConvertCodeActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]$Value) {
+    $Properties = CreateActivityProperties -Activity $Value -ActivityType Code
     $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
     $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
     $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
