@@ -293,6 +293,62 @@ function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
 }
 
+function ConvertCodeActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]$Value) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        Name = $Value.Name
+        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Type = 'Code'
+        Begin = $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) })
+        Process = $(if ($Value.Process) { [scriptblock]::Create($Value.Process) })
+        End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
+        CheckpointAfter = $Value.CheckpointAfter
+        ExceptionsToErrors = $Value.ExceptionsToErrors
+        LoopExitCondition = $Value.LoopExitCondition
+        Position = PreparePositionPropertyValue $Value
+    })
+}
+
+function ConvertCommandActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.CommandActivity]$Value) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        Name = $Value.Name
+        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Type = 'Command'
+        ModuleName = PrepareStringPropertyValue $Value.CommandType.ModuleName
+        CommandName = $Value.CommandType.CommandName
+        Parameters = PrepareDictionaryPropertyValue $Value.Parameters
+        CustomParameters = PrepareStringPropertyValue $Value.CustomParameters
+        CheckpointAfter = $Value.CheckpointAfter
+        ExceptionsToErrors = $Value.ExceptionsToErrors
+        LoopExitCondition = $Value.LoopExitCondition
+        Position = PreparePositionPropertyValue $Value
+    })
+}
+
+function ConvertInvokeRunbookActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]$Value) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        Name = $Value.Name
+        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Type = 'InvokeRunbook'
+        CommandName = $Value.RunbookActivityType.CommandName
+        Parameters = PrepareDictionaryPropertyValue $Value.Parameters
+        CustomParameters = PrepareStringPropertyValue $Value.CustomParameters
+        CheckpointAfter = $Value.CheckpointAfter
+        ExceptionsToErrors = $Value.ExceptionsToErrors
+        LoopExitCondition = $Value.LoopExitCondition
+        Position = PreparePositionPropertyValue $Value
+    })
+}
+
+function ConvertJunctionActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.JunctionActivity]$Value) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        Name = $Value.Name
+        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Type = 'Junction'
+        CheckpointAfter = $Value.CheckpointAfter
+        Position = PreparePositionPropertyValue $Value
+    })
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -310,56 +366,16 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            Name = $Value.Name
-            Description = $(if ($Value.Description) { $Value.Description } else { $null })
-            Type = 'Code'
-            Begin = $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) })
-            Process = $(if ($Value.Process) { [scriptblock]::Create($Value.Process) })
-            End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
-            CheckpointAfter = $Value.CheckpointAfter
-            ExceptionsToErrors = $Value.ExceptionsToErrors
-            LoopExitCondition = $Value.LoopExitCondition
-            Position = PreparePositionPropertyValue $Value
-        })
+        ConvertCodeActivityToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            Name = $Value.Name
-            Description = $(if ($Value.Description) { $Value.Description } else { $null })
-            Type = 'Command'
-            ModuleName = PrepareStringPropertyValue $Value.CommandType.ModuleName
-            CommandName = $Value.CommandType.CommandName
-            Parameters = PrepareDictionaryPropertyValue $Value.Parameters
-            CustomParameters = PrepareStringPropertyValue $Value.CustomParameters
-            CheckpointAfter = $Value.CheckpointAfter
-            ExceptionsToErrors = $Value.ExceptionsToErrors
-            LoopExitCondition = $Value.LoopExitCondition
-            Position = PreparePositionPropertyValue $Value
-        })
+        ConvertCommandActivityToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            Name = $Value.Name
-            Description = $(if ($Value.Description) { $Value.Description } else { $null })
-            Type = 'InvokeRunbook'
-            CommandName = $Value.RunbookActivityType.CommandName
-            Parameters = PrepareDictionaryPropertyValue $Value.Parameters
-            CustomParameters = PrepareStringPropertyValue $Value.CustomParameters
-            CheckpointAfter = $Value.CheckpointAfter
-            ExceptionsToErrors = $Value.ExceptionsToErrors
-            LoopExitCondition = $Value.LoopExitCondition
-            Position = PreparePositionPropertyValue $Value
-        })
+        ConvertInvokeRunbookActivityToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            Name = $Value.Name
-            Description = $(if ($Value.Description) { $Value.Description } else { $null })
-            Type = 'Junction'
-            CheckpointAfter = $Value.CheckpointAfter
-            Position = PreparePositionPropertyValue $Value
-        })
+        ConvertJunctionActivityToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [System.Collections.IDictionary]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
