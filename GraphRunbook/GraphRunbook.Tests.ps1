@@ -646,7 +646,7 @@ Activities = @(
             }
         }
 
-        function CreateRunbookWithLink([scriptblock]$SetupLink)
+        function CreateRunbookWithLink($LinkType)
         {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
@@ -656,11 +656,11 @@ Activities = @(
             $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
             [void]$Runbook.AddActivity($ActivityB)
 
-            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
-            $SetupLink.Invoke($LinkAtoB)
+            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, $LinkType
             [void]$Runbook.AddLink($LinkAtoB)
 
             $Runbook
+            $LinkAtoB
         }
 
         function CreateExpectedRunbookWithLinkText($LinkText)
@@ -688,13 +688,10 @@ Links = @(
 "@
         }
 
-        Context "When GraphRunbook contains regular link" {
-            $Runbook = CreateRunbookWithLink {
-                param($Link)
-
-                $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
-                $Link.LinkStreamType = 'Output'
-            }
+        Context "When GraphRunbook contains regular sequence link" {
+            $Runbook, $Link = CreateRunbookWithLink -LinkType Sequence
+            $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
+            $Link.LinkStreamType = 'Output'
 
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
@@ -712,13 +709,10 @@ Links = @(
             }
         }
 
-        Context "When GraphRunbook contains error link" {
-            $Runbook = CreateRunbookWithLink {
-                param($Link)
-                
-                $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
-                $Link.LinkStreamType = 'Error'
-            }
+        Context "When GraphRunbook contains error pipeline link" {
+            $Runbook, $Link = CreateRunbookWithLink -LinkType Pipeline
+            $Link.Condition = '$ActivityOutput[''A''].Count -gt 0'
+            $Link.LinkStreamType = 'Error'
 
             It "Converts GraphRunbook to text" {
                 $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
@@ -728,7 +722,7 @@ Links = @(
         From = 'Activity A'
         To = 'Activity B'
         Stream = 'Error'
-        Type = 'Sequence'
+        Type = 'Pipeline'
         Condition = {
             `$ActivityOutput['A'].Count -gt 0
         }
