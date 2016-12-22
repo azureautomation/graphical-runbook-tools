@@ -226,7 +226,8 @@ function IsDefaultValue($Value) {
     (($Value -is [bool]) -and ($Value -eq $false)) -or
     (($Value -is [Orchestrator.GraphRunbook.Model.Condition]) -and
         ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Disabled) -and
-        ([string]::IsNullOrEmpty($Value.Expression)))
+        ([string]::IsNullOrEmpty($Value.Expression))) -or
+    (($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]) -and ($Value -eq [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]::Output))
 }
 
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId) {
@@ -393,6 +394,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             From = $FromActivity.Name
             To = $ToActivity.Name
+            Stream = $Value.LinkStreamType
             Type = $Value.LinkType
             Condition = $Value.Condition
         })

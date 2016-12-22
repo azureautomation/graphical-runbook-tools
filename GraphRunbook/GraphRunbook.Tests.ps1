@@ -646,6 +646,103 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains regular link" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            $ActivityA = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity A'
+            $Runbook.AddActivity($ActivityA)
+
+            $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
+            $Runbook.AddActivity($ActivityB)
+
+            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
+            $LinkAtoB.Condition = '$ActivityOutput[''A''].Count -gt 0'
+            $LinkAtoB.LinkStreamType = 'Output'
+            $Runbook.AddLink($LinkAtoB)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity A'
+        Type = 'Code'
+    }
+    @{
+        Name = 'Activity B'
+        Type = 'Code'
+    }
+)
+
+Links = @(
+    @{
+        From = 'Activity A'
+        To = 'Activity B'
+        Type = 'Sequence'
+        Condition = {
+            `$ActivityOutput['A'].Count -gt 0
+        }
+    }
+)
+
+}
+
+"@
+            }
+        }
+
+        Context "When GraphRunbook contains error link" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            $ActivityA = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity A'
+            $Runbook.AddActivity($ActivityA)
+
+            $ActivityB = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity B'
+            $Runbook.AddActivity($ActivityB)
+
+            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
+            $LinkAtoB.Condition = '$ActivityOutput[''A''].Count -gt 0'
+            $LinkAtoB.LinkStreamType = 'Error'
+            $Runbook.AddLink($LinkAtoB)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity A'
+        Type = 'Code'
+    }
+    @{
+        Name = 'Activity B'
+        Type = 'Code'
+    }
+)
+
+Links = @(
+    @{
+        From = 'Activity A'
+        To = 'Activity B'
+        Stream = 'Error'
+        Type = 'Sequence'
+        Condition = {
+            `$ActivityOutput['A'].Count -gt 0
+        }
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
