@@ -620,6 +620,8 @@ Source code: https://github.com/azureautomation/graphical-runbook-tools
 Azure Automation: https://azure.microsoft.com/services/automation
 
 #>
+    [CmdletBinding()]
+
     param(
         [Parameter(Mandatory = $true)]
         # Should be [Orchestrator.GraphRunbook.Model.GraphRunbook], but declaring this type here would require
@@ -632,7 +634,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
     Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
 
-    Convert-GraphRunbookObjectToPowerShellData $Runbook
+    Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
 }
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
