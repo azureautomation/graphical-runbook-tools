@@ -292,6 +292,15 @@ function SkipIfNullOrEmptyString($Value) {
     }
 }
 
+function SkipIfNullOrEmptyDictionary($Value) {
+    if (($Value -eq $null) -or ($Value.Count -eq 0)) {
+        $null
+    }
+    else {
+        $Value
+    }
+}
+
 function ConvertValueToPsd($IndentLevel, $Value) {
     if ($Value -eq $null) {
         '$null'
@@ -329,7 +338,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             Type = 'Command'
             ModuleName = SkipIfNullOrEmptyString $Value.CommandType.ModuleName
             CommandName = $Value.CommandType.CommandName
-            Parameters = $Value.Parameters
+            Parameters = SkipIfNullOrEmptyDictionary $Value.Parameters
             CustomParameters = SkipIfNullOrEmptyString $Value.CustomParameters
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors
@@ -343,7 +352,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'InvokeRunbook'
             CommandName = $Value.RunbookActivityType.CommandName
-            Parameters = $Value.Parameters
+            Parameters = SkipIfNullOrEmptyDictionary $Value.Parameters
             CustomParameters = SkipIfNullOrEmptyString $Value.CustomParameters
             CheckpointAfter = $Value.CheckpointAfter
             ExceptionsToErrors = $Value.ExceptionsToErrors

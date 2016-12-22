@@ -363,6 +363,33 @@ Activities = @(
             }
         }
 
+        Context "When GraphRunbook contains minimal Command activity" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = 'Do-Something'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList 'Activity name', $CommandActivityType
+            $Runbook.AddActivity($Activity)
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+                $Text | Should be @"
+@{
+
+Activities = @(
+    @{
+        Name = 'Activity name'
+        Type = 'Command'
+        CommandName = 'Do-Something'
+    }
+)
+
+}
+
+"@
+            }
+        }
+
         Context "When GraphRunbook contains InvokeRunbook activity" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $InvokeRunbookActivityType = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivityType
