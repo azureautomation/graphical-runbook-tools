@@ -590,7 +590,7 @@ Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook -
 Specify the Microsoft Azure Automation Graphical Authoring SDK installation directory.
 
 .EXAMPLE
-Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
+Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -Verbose | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
 Retrieve all published graphical runbooks from a specified Automation Account, convert them to PowerSHell data, and save the results to .psd1 files.
 
 .LINK
