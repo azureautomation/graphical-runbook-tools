@@ -774,8 +774,7 @@ Links = @(
             $ActivityB.Parameters.Add("Parameter3", (New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList @($null)))
             $Runbook.AddActivity($ActivityB)
 
-            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Sequence
-            $LinkAtoB.Condition = '$ActivityOutput[''A''].Count -gt 0'
+            $LinkAtoB = New-Object Orchestrator.GraphRunbook.Model.Link -ArgumentList $ActivityA, $ActivityB, Pipeline
             $Runbook.AddLink($LinkAtoB)
 
             It "Converts GraphRunbook to text" {
@@ -836,10 +835,7 @@ Links = @(
     @{
         From = 'Activity A'
         To = 'Activity B'
-        Type = 'Sequence'
-        Condition = {
-            `$ActivityOutput['A'].Count -gt 0
-        }
+        Type = 'Pipeline'
     }
 )
 
