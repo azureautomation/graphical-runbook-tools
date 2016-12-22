@@ -349,23 +349,8 @@ function ConvertJunctionActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.M
     })
 }
 
-function ConvertValueToPsd($IndentLevel, $Value) {
-    if ($Value -eq $null) {
-        '$null'
-    }
-    elseif ($Value -is [System.Collections.IList]) {
-        ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
-    }
-    elseif ($Value -is [scriptblock]) {
-        ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value $Value
-    }
-    elseif ($Value -is [hashtable]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
-    }
-    elseif ($Value -is [System.Collections.Specialized.OrderedDictionary]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
-    }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
+function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Value) {
+    if ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
         ConvertCodeActivityToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
@@ -377,10 +362,13 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
         ConvertJunctionActivityToPsd -IndentLevel $IndentLevel -Value $Value
     }
-    elseif ($Value -is [System.Collections.IDictionary]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
+    else {
+        throw "Activity '$($Value.Name)' is of unknown type: $($Value.GetType().FullName)"
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IConstantValueDescriptor]) {
+}
+
+function ConvertValueDescriptorToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IValueDescriptor]$Value) {
+    if ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IConstantValueDescriptor]) {
         ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value.Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityOutputValueDescriptor]) {
@@ -422,6 +410,36 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             SourceType = 'AutomationVariable'
             Name = $Value.VariableName
         })
+    }
+    else {
+        throw "Unknown value descriptor type: $($Value.GetType().FullName)"
+    }
+}
+
+function ConvertValueToPsd($IndentLevel, $Value) {
+    if ($Value -eq $null) {
+        '$null'
+    }
+    elseif ($Value -is [System.Collections.IList]) {
+        ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [scriptblock]) {
+        ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [hashtable]) {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [System.Collections.Specialized.OrderedDictionary]) {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]) {
+        ConvertActivityToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [System.Collections.IDictionary]) {
+        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IValueDescriptor]) {
+        ConvertValueDescriptorToPsd -IndentLevel $IndentLevel -Value $Value
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Link]) {
         $FromActivity = Get-ActivityById $Runbook $Value.SourceActivityEntityId
