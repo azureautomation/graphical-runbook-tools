@@ -293,19 +293,36 @@ function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
 }
 
+function AddFirstCommonActivityProperties(
+        [System.Collections.IDictionary]$Properties,
+        [Orchestrator.GraphRunbook.Model.Activity]$Activity) {
+    $Properties.Add('Name', $Activity.Name)
+
+    $Description = PrepareStringPropertyValue $Activity.Description
+    $Properties.Add('Description', $Description)
+}
+
+function AddLastCommonActivityProperties(
+        [System.Collections.IDictionary]$Properties,
+        [Orchestrator.GraphRunbook.Model.Activity]$Activity) {
+    $Properties.Add('CheckpointAfter', $Activity.CheckpointAfter)
+    $Properties.Add('ExceptionsToErrors', $Activity.ExceptionsToErrors)
+    $Properties.Add('LoopExitCondition', $Activity.LoopExitCondition)
+
+    $Position = PreparePositionPropertyValue $Activity
+    $Properties.Add('Position', $Position)
+}
+
 function ConvertCodeActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]$Value) {
-    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-        Name = $Value.Name
-        Description = $(if ($Value.Description) { $Value.Description } else { $null })
-        Type = 'Code'
-        Begin = $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) })
-        Process = $(if ($Value.Process) { [scriptblock]::Create($Value.Process) })
-        End = $(if ($Value.End) { [scriptblock]::Create($Value.End) })
-        CheckpointAfter = $Value.CheckpointAfter
-        ExceptionsToErrors = $Value.ExceptionsToErrors
-        LoopExitCondition = $Value.LoopExitCondition
-        Position = PreparePositionPropertyValue $Value
-    })
+    $Properties = [ordered]@{ }
+    AddFirstCommonActivityProperties -Properties $Properties -Activity $Value
+    $Properties.Add('Type', 'Code')
+    $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
+    $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
+    $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
+    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
+
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
 }
 
 function ConvertCommandActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.CommandActivity]$Value) {
