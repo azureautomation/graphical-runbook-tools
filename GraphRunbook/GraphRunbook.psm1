@@ -306,6 +306,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
             Name = $Value.Name
             Description = $Value.Description
             Type = 'Command'
+            ModuleName = $Value.CommandType.ModuleName
             CommandName = $Value.CommandType.CommandName
             Parameters = $Value.Parameters
             CheckpointAfter = $Value.CheckpointAfter

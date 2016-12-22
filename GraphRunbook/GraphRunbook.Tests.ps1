@@ -311,6 +311,7 @@ Activities = @(
         Context "When GraphRunbook contains Command activity" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.ModuleName = 'MyModule'
             $CommandActivityType.CommandName = 'Do-Something'
             $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList 'Activity name', $CommandActivityType
             $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
@@ -336,6 +337,7 @@ Activities = @(
         Name = 'Activity name'
         Description = 'Activity description'
         Type = 'Command'
+        ModuleName = 'MyModule'
         CommandName = 'Do-Something'
         Parameters = @{
             Parameter1 = 'Value 1'
