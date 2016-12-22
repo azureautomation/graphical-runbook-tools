@@ -293,34 +293,12 @@ function ConvertScriptBlockToPsd($IndentLevel, [scriptblock]$Value) {
     "{`r`n$(Get-Indent $NextIndentLevel)$Value`r`n$(Get-Indent $IndentLevel)}"
 }
 
-function AddFirstCommonActivityProperties(
-        [System.Collections.IDictionary]$Properties,
-        [Orchestrator.GraphRunbook.Model.Activity]$Activity) {
-    $Properties.Add('Name', $Activity.Name)
-
-    $Description = PrepareStringPropertyValue $Activity.Description
-    $Properties.Add('Description', $Description)
-}
-
-function AddLastCommonActivityProperties(
-        [System.Collections.IDictionary]$Properties,
-        [Orchestrator.GraphRunbook.Model.Activity]$Activity) {
-    $Properties.Add('CheckpointAfter', $Activity.CheckpointAfter)
-    $Properties.Add('ExceptionsToErrors', $Activity.ExceptionsToErrors)
-    $Properties.Add('LoopExitCondition', $Activity.LoopExitCondition)
-
-    $Position = PreparePositionPropertyValue $Activity
-    $Properties.Add('Position', $Position)
-}
-
-function CreateActivityProperties([Orchestrator.GraphRunbook.Model.Activity]$Activity) {
-    $Properties = [ordered]@{ }
-    AddFirstCommonActivityProperties -Properties $Properties -Activity $Activity
-    $Properties
-}
-
 function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Value) {
-    $Properties = CreateActivityProperties -Activity $Value
+    $Properties = [ordered]@{ }
+    $Properties.Add('Name', $Value.Name)
+
+    $Description = PrepareStringPropertyValue $Value.Description
+    $Properties.Add('Description', $Description)
 
     if ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
         $Properties.Add('Type', 'Code')
@@ -348,7 +326,13 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
         throw "Activity '$($Value.Name)' is of unknown type: $($Value.GetType().FullName)"
     }
 
-    AddLastCommonActivityProperties -Properties $Properties -Activity $Value
+    $Properties.Add('CheckpointAfter', $Value.CheckpointAfter)
+    $Properties.Add('ExceptionsToErrors', $Value.ExceptionsToErrors)
+    $Properties.Add('LoopExitCondition', $Value.LoopExitCondition)
+
+    $Position = PreparePositionPropertyValue $Value
+    $Properties.Add('Position', $Position)
+
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
 }
 
