@@ -299,7 +299,7 @@ function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value)
         }
 }
 
-function ConvertDictionaryToPsd($IndentLevel, $Value)
+function ConvertDictionaryToPsd($IndentLevel, [System.Collections.IDictionary]$Value)
 {
     $Result = "@{`r`n"
     $NextIndentLevel = $IndentLevel + 1
@@ -399,7 +399,7 @@ function ConvertValueToPsd($IndentLevel, $Value)
             PositionY = $Value.PositionY
         })
     }
-    elseif ($Value -is [Orchestrator.GraphRunbook.Model.ActivityParameters])
+    elseif ($Value -is [System.Collections.IDictionary])
     {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Value
     }
