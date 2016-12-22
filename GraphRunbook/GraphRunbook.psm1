@@ -582,7 +582,11 @@ Converts a graphical runbook to PowerShell data
 
 .DESCRIPTION
 
-Converts a graphical runbook to PowerShell data
+Converts a graphical runbook to PowerShell data. The resulting representation contains the entire runbook definition in a human-readable and PowerShell-readable text format. It can be used for inspecting and documenting runbooks, storing them in a source control system, comparing different versions, etc. Furthermore, the resulting representation is valid PowerShell code that constructs a data structure with all the runbook content, so you can saved it in a .psd1 file, open it in any PowerShell editing tool, parse it with PowerShell, etc.
+
+IMPORTANT NOTE
+==============
+Even though the resulting representation contains all the data from the original runbook, and it can be used to constract a runbook equivalent to the original one, there is no automated conversion implemented yet. If you intend to use this runbook in Azure Automation later, do *not* discard the original .graphrunbook file after conversion.
 
 Prerequisites
 =============
