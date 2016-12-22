@@ -731,6 +731,41 @@ Links = @(
             }
         }
 
+        Context "When GraphRunbook contains link with description" {
+            $Runbook, $Link = CreateRunbookWithLink -LinkType Pipeline
+            $Link.Description = 'My link description'
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookWithLinkText @"
+@{
+        From = 'Activity A'
+        To = 'Activity B'
+        Description = 'My link description'
+        Type = 'Pipeline'
+    }
+"@)
+            }
+        }
+
+        Context "When GraphRunbook contains link with empty description" {
+            $Runbook, $Link = CreateRunbookWithLink -LinkType Pipeline
+            $Link.Description = ''
+
+            It "Converts GraphRunbook to text" {
+                $Text = Convert-GraphRunbookToPowerShellData -Runbook $Runbook
+
+                $Text | Should be (CreateExpectedRunbookWithLinkText @"
+@{
+        From = 'Activity A'
+        To = 'Activity B'
+        Type = 'Pipeline'
+    }
+"@)
+            }
+        }
+
         Context "When GraphRunbook contains activities, links, output types, and comments" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 

@@ -232,8 +232,7 @@ function IsDefaultValue($Value) {
 
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId) {
     $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
-    if (-not $Result)
-    {
+    if (-not $Result) {
         throw "Cannot find activity by entity ID: $ActivityId"
     }
     $Result
@@ -290,7 +289,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.WorkflowScriptActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
-            Description = $Value.Description
+            Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'Code'
             Begin = $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) })
             Process = $(if ($Value.Process) { [scriptblock]::Create($Value.Process) })
@@ -305,7 +304,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.CommandActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
-            Description = $Value.Description
+            Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'Command'
             ModuleName = $Value.CommandType.ModuleName
             CommandName = $Value.CommandType.CommandName
@@ -320,7 +319,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.InvokeRunbookActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
-            Description = $Value.Description
+            Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'InvokeRunbook'
             CommandName = $Value.RunbookActivityType.CommandName
             Parameters = $Value.Parameters
@@ -334,7 +333,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.JunctionActivity]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
-            Description = $Value.Description
+            Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Type = 'Junction'
             CheckpointAfter = $Value.CheckpointAfter
             PositionX = $Value.PositionX
@@ -394,6 +393,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             From = $FromActivity.Name
             To = $ToActivity.Name
+            Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Stream = $Value.LinkStreamType
             Type = $Value.LinkType
             Condition = $Value.Condition
@@ -419,7 +419,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.Parameter]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Name = $Value.Name
-            Description = $Value.Description
+            Description = $(if ($Value.Description) { $Value.Description } else { $null })
             Mandatory = -not $Value.Optional
             DefaultValue = $Value.DefaultValue
         })
