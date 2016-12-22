@@ -1,3 +1,5 @@
+#region Show-GraphRunbookActivityTraces
+
 function ExpectEvent($GraphTraceRecord, $ExpectedEventType, $ExpectedActivityName) {
     $ActualEventType = $GraphTraceRecord.Event
     $ActualActivityName = $GraphTraceRecord.Activity
@@ -202,6 +204,10 @@ Azure Automation: https://azure.microsoft.com/services/automation
         }
     }
 }
+
+#endregion
+
+#region Convert-GraphRunbookToPowerShellData
 
 function Get-Indent($IndentLevel) {
     ' ' * $IndentLevel * 4
@@ -686,6 +692,8 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
         }
     }
 }
+
+#endregion
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
 Export-ModuleMember -Function Convert-GraphRunbookToPowerShellData
