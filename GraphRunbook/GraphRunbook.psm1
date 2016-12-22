@@ -627,7 +627,9 @@ Azure Automation: https://azure.microsoft.com/services/automation
     [CmdletBinding()]
 
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ByGraphRunbook')]
         # Should be [Orchestrator.GraphRunbook.Model.GraphRunbook], but declaring this type here would require
         # the Model assembly to be pre-loaded even before accessing module metadata
         $Runbook,
@@ -638,7 +640,10 @@ Azure Automation: https://azure.microsoft.com/services/automation
 
     Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
 
-    Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
+    switch ($PSCmdlet.ParameterSetName)
+    {
+        'ByGraphRunbook' { Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop }
+    }
 }
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
