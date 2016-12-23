@@ -498,6 +498,7 @@ function ConvertValueToPsd($IndentLevel, $Value) {
         ConvertParameterToPsd -IndentLevel $IndentLevel -Value $Value
     }
     else {
+        # PowerShell v.5+ required!
         "'$([Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($Value.ToString()))'"
     }
 }
