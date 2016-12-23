@@ -322,6 +322,17 @@ function GetActivityTypeName([Orchestrator.GraphRunbook.Model.ExecutableView.IAc
     }
 }
 
+function CreateRetry($ExitCondition) {
+    if ($ExitCondition.Expression) {
+        [ordered]@{
+            ExitCondition = $ExitCondition
+        }
+    }
+    else {
+        $null
+    }
+}
+
 function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Value) {
     $Properties = [ordered]@{ }
     
@@ -340,7 +351,7 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
     
     $Properties.Add('CheckpointAfter', $Value.CheckpointAfter)
     $Properties.Add('ExceptionsToErrors', $Value.ExceptionsToErrors)
-    $Properties.Add('LoopExitCondition', $Value.LoopExitCondition)
+    $Properties.Add('Retry', (CreateRetry -ExitCondition $Value.LoopExitCondition))
 
     $Properties.Add('Position', (NullIfPositionZeroZero $Value))
 

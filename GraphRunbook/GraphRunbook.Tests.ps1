@@ -294,8 +294,10 @@ Activities = @(
         }
         CheckpointAfter = `$true
         ExceptionsToErrors = `$true
-        LoopExitCondition = {
-            `$RetryData.NumberOfAttempts -gt 5
+        Retry = @{
+            ExitCondition = {
+                `$RetryData.NumberOfAttempts -gt 5
+            }
         }
         Position = 12, 456
     }
@@ -350,8 +352,10 @@ Activities = @(
         CustomParameters = '-CustomParam CustomValue'
         CheckpointAfter = `$true
         ExceptionsToErrors = `$true
-        LoopExitCondition = {
-            `$RetryData.NumberOfAttempts -gt 5
+        Retry = @{
+            ExitCondition = {
+                `$RetryData.NumberOfAttempts -gt 5
+            }
         }
         Position = 12, 456
     }
@@ -431,8 +435,10 @@ Activities = @(
         CustomParameters = '-CustomParam CustomValue'
         CheckpointAfter = `$true
         ExceptionsToErrors = `$true
-        LoopExitCondition = {
-            `$RetryData.NumberOfAttempts -gt 5
+        Retry = @{
+            ExitCondition = {
+                `$RetryData.NumberOfAttempts -gt 5
+            }
         }
         Position = 12, 456
     }
