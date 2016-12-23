@@ -254,7 +254,8 @@ function IsDefaultValue($Value) {
     (($Value -is [Orchestrator.GraphRunbook.Model.Condition]) -and
         ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Disabled) -and
         ([string]::IsNullOrEmpty($Value.Expression))) -or
-    (($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]) -and ($Value -eq [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]::Output))
+    (($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]) -and
+        ($Value -eq [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]::Output))
 }
 
 function CreateScriptBlockIfNotEmpty($Value)
@@ -323,7 +324,12 @@ function GetActivityTypeName([Orchestrator.GraphRunbook.Model.ExecutableView.IAc
 }
 
 function CreateRetry($ExitCondition, $Delay) {
-    if ($ExitCondition.Expression) {
+    $IsExitConditionDataPresent =
+        ($ExitCondition -ne $null) -and
+        (($ExitCondition.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) -or
+            (-not [string]::IsNullOrEmpty($ExitCondition.Expression)))
+
+    if ($IsExitConditionDataPresent) {
         [ordered]@{
             ExitCondition = $ExitCondition
             Delay = $Delay
