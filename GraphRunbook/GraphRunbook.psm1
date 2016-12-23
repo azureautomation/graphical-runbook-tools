@@ -221,7 +221,7 @@ function Get-Indent($IndentLevel) {
     ' ' * $IndentLevel * 4
 }
 
-function PreparePositionPropertyValue([Orchestrator.GraphRunbook.Model.IPositionedEntity]$Value) {
+function NullIfPositionZeroZero([Orchestrator.GraphRunbook.Model.IPositionedEntity]$Value) {
     if (($Value.PositionX -eq 0) -and ($Value.PositionY -eq 0)) {
         $null
     }
@@ -230,7 +230,7 @@ function PreparePositionPropertyValue([Orchestrator.GraphRunbook.Model.IPosition
     }
 }
 
-function PrepareStringPropertyValue($Value) {
+function NullIfEmptyString($Value) {
     if ([string]::IsNullOrEmpty($Value)) {
         $null
     }
@@ -239,7 +239,7 @@ function PrepareStringPropertyValue($Value) {
     }
 }
 
-function PrepareDictionaryPropertyValue($Value) {
+function NullIfEmptyDictionary($Value) {
     if (($Value -eq $null) -or ($Value.Count -eq 0)) {
         $null
     }
@@ -316,23 +316,23 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
     $Properties = [ordered]@{ }
     
     $Properties.Add('Name', $Value.Name)
-    $Properties.Add('Description', (PrepareStringPropertyValue $Value.Description))
+    $Properties.Add('Description', (NullIfEmptyString $Value.Description))
     $Properties.Add('Type', (GetActivityTypeName $Value))
 
     $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
     $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
     $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
 
-    $Properties.Add('ModuleName', (PrepareStringPropertyValue $Value.CommandType.ModuleName))
+    $Properties.Add('ModuleName', (NullIfEmptyString $Value.CommandType.ModuleName))
     $Properties.Add('CommandName', $Value.InvocationActivityType.CommandName)
-    $Properties.Add('Parameters', (PrepareDictionaryPropertyValue $Value.Parameters))
-    $Properties.Add('CustomParameters', (PrepareStringPropertyValue $Value.CustomParameters))
+    $Properties.Add('Parameters', (NullIfEmptyDictionary $Value.Parameters))
+    $Properties.Add('CustomParameters', (NullIfEmptyString $Value.CustomParameters))
     
     $Properties.Add('CheckpointAfter', $Value.CheckpointAfter)
     $Properties.Add('ExceptionsToErrors', $Value.ExceptionsToErrors)
     $Properties.Add('LoopExitCondition', $Value.LoopExitCondition)
 
-    $Properties.Add('Position', (PreparePositionPropertyValue $Value))
+    $Properties.Add('Position', (NullIfPositionZeroZero $Value))
 
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
 }
@@ -416,7 +416,7 @@ function ConvertCommentToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Comm
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
         Name = $Value.Name
         Text = $Value.Text
-        Position = PreparePositionPropertyValue $Value
+        Position = NullIfPositionZeroZero $Value
     })
 }
 
