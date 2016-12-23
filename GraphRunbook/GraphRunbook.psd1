@@ -52,8 +52,8 @@ PowerShellVersion = '3.0'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
-               'AzureRM.Automation',
-               'PowerShellCookbook')
+    'AzureRM.Automation',
+    'PowerShellCookbook')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -71,7 +71,9 @@ RequiredModules = @(
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Show-GraphRunbookActivityTraces')
+FunctionsToExport = @(
+    'Show-GraphRunbookActivityTraces',
+    'Convert-GraphRunbookToPowerShellData')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
