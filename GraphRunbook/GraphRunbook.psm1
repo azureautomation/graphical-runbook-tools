@@ -5,7 +5,7 @@ function ExpectEvent($GraphTraceRecord, $ExpectedEventType, $ExpectedActivityNam
     $ActualActivityName = $GraphTraceRecord.Activity
 
     if (($ActualEventType -ne $ExpectedEventType) -or
-            (($ExpectedActivityName -ne $null) -and ($ActualActivityName -ne $ExpectedActivityName))) {
+            (($null -ne $ExpectedActivityName) -and ($ActualActivityName -ne $ExpectedActivityName))) {
         throw "Unexpected event $ActualEventType/$ActualActivityName (expected $ExpectedEventType/$ExpectedActivityName)"
     }
 }
@@ -240,7 +240,7 @@ function NullIfEmptyString($Value) {
 }
 
 function NullIfEmptyDictionary($Value) {
-    if (($Value -eq $null) -or ($Value.Count -eq 0)) {
+    if (($null -eq $Value) -or ($Value.Count -eq 0)) {
         $null
     }
     else {
@@ -249,7 +249,7 @@ function NullIfEmptyDictionary($Value) {
 }
 
 function IsDefaultValue($Value) {
-    ($Value -eq $null) -or
+    ($null -eq $Value) -or
     (($Value -is [bool]) -and ($Value -eq $false)) -or
     (($Value -is [Orchestrator.GraphRunbook.Model.Condition]) -and
         ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Disabled) -and
@@ -325,7 +325,7 @@ function GetActivityTypeName([Orchestrator.GraphRunbook.Model.ExecutableView.IAc
 
 function CreateRetry($ExitCondition, $Delay) {
     $IsExitConditionDataPresent =
-        ($ExitCondition -ne $null) -and
+        ($null -ne $ExitCondition) -and
         (($ExitCondition.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) -or
             (-not [string]::IsNullOrEmpty($ExitCondition.Expression)))
 
@@ -450,7 +450,7 @@ function ConvertParameterToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Pa
 }
 
 function ConvertValueToPsd($IndentLevel, $Value) {
-    if ($Value -eq $null) {
+    if ($null -eq $Value) {
         '$null'
     }
     elseif ($Value -is [bool]) {
