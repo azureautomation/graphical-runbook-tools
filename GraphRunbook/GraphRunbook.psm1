@@ -257,6 +257,16 @@ function IsDefaultValue($Value) {
     (($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]) -and ($Value -eq [Orchestrator.GraphRunbook.Model.ExecutableView.LinkStreamType]::Output))
 }
 
+function CreateScriptBlockIfNotEmpty($Value)
+{
+    if ($Value) {
+        [scriptblock]::Create($Value)
+    }
+    else {
+        $null
+    }
+}
+
 function ConvertListToPsd($IndentLevel, [System.Collections.IList]$Value) {
     if ($Value.Count -eq 0) {
         '@()'
@@ -319,9 +329,9 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
     $Properties.Add('Description', (NullIfEmptyString $Value.Description))
     $Properties.Add('Type', (GetActivityTypeName $Value))
 
-    $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
-    $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
-    $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
+    $Properties.Add('Begin', (CreateScriptBlockIfNotEmpty $Value.Begin))
+    $Properties.Add('Process', (CreateScriptBlockIfNotEmpty $Value.Process))
+    $Properties.Add('End', (CreateScriptBlockIfNotEmpty $Value.End))
 
     $Properties.Add('ModuleName', (NullIfEmptyString $Value.CommandType.ModuleName))
     $Properties.Add('CommandName', $Value.InvocationActivityType.CommandName)
@@ -349,7 +359,7 @@ function ConvertValueDescriptorToPsd($IndentLevel, [Orchestrator.GraphRunbook.Mo
         })
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.PowerShellExpressionValueDescriptor]) {
-        ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+        ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value (CreateScriptBlockIfNotEmpty $Value.Expression)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor]) {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
@@ -402,12 +412,12 @@ function ConvertLinkToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Link]$V
 
 function ConvertConditionToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Condition]$Value) {
     if ($Value.Mode -eq [Orchestrator.GraphRunbook.Model.ConditionMode]::Enabled) {
-        ConvertValueToPsd -IndentLevel $IndentLevel -Value ([scriptblock]::Create($Value.Expression))
+        ConvertValueToPsd -IndentLevel $IndentLevel -Value (CreateScriptBlockIfNotEmpty $Value.Expression)
     }
     else {
         ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
             Mode = $Value.Mode
-            Expression = [scriptblock]::Create($Value.Expression)
+            Expression = CreateScriptBlockIfNotEmpty $Value.Expression
         })
     }
 }
