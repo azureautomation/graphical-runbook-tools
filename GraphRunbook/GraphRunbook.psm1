@@ -347,6 +347,13 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
 }
 
+function ConvertNamedReferenceToPsd($IndentLevel, $SourceType, $Name) {
+    ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
+        SourceType = $SourceType
+        Name = $Name
+    })
+}
+
 function ConvertValueDescriptorToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IValueDescriptor]$Value) {
     if ($Value -is [Orchestrator.GraphRunbook.Model.ExecutableView.IConstantValueDescriptor]) {
         ConvertValueToPsd -IndentLevel $IndentLevel -Value $Value.Value
@@ -362,34 +369,19 @@ function ConvertValueDescriptorToPsd($IndentLevel, [Orchestrator.GraphRunbook.Mo
         ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value (CreateScriptBlockIfNotEmpty $Value.Expression)
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.RunbookParameterValueDescriptor]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            SourceType = 'RunbookParameter'
-            Name = $Value.ParameterName
-        })
+        ConvertNamedReferenceToPsd -IndentLevel $IndentLevel -SourceType 'RunbookParameter' -Name $Value.ParameterName
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            SourceType = 'AutomationCertificate'
-            Name = $Value.CertificateName
-        })
+        ConvertNamedReferenceToPsd -IndentLevel $IndentLevel -SourceType 'AutomationCertificate' -Name $Value.CertificateName
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            SourceType = 'AutomationCredential'
-            Name = $Value.CredentialName
-        })
+        ConvertNamedReferenceToPsd -IndentLevel $IndentLevel -SourceType 'AutomationCredential' -Name $Value.CredentialName
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            SourceType = 'AutomationConnection'
-            Name = $Value.ConnectionName
-        })
+        ConvertNamedReferenceToPsd -IndentLevel $IndentLevel -SourceType 'AutomationConnection' -Name $Value.ConnectionName
     }
     elseif ($Value -is [Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor]) {
-        ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
-            SourceType = 'AutomationVariable'
-            Name = $Value.VariableName
-        })
+        ConvertNamedReferenceToPsd -IndentLevel $IndentLevel -SourceType 'AutomationVariable' -Name $Value.VariableName
     }
     else {
         throw "Unknown value descriptor type: $($Value.GetType().FullName)"
