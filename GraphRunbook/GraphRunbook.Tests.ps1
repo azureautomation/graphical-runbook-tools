@@ -324,6 +324,8 @@ Activities = @(
             $Activity.CheckpointAfter = $true
             $Activity.ExceptionsToErrors = $true
             $Activity.LoopExitCondition = '$RetryData.NumberOfAttempts -gt 5'
+            $LoopDelayTimeSpan = New-Object System.TimeSpan -ArgumentList 8765
+            $Activity.LoopDelay = New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList $LoopDelayTimeSpan
             $Activity.PositionX = 12
             $Activity.PositionY = 456
             $Runbook.AddActivity($Activity)
@@ -356,6 +358,7 @@ Activities = @(
             ExitCondition = {
                 `$RetryData.NumberOfAttempts -gt 5
             }
+            Delay = 8765
         }
         Position = 12, 456
     }

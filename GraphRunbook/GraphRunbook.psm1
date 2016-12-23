@@ -322,10 +322,11 @@ function GetActivityTypeName([Orchestrator.GraphRunbook.Model.ExecutableView.IAc
     }
 }
 
-function CreateRetry($ExitCondition) {
+function CreateRetry($ExitCondition, $Delay) {
     if ($ExitCondition.Expression) {
         [ordered]@{
             ExitCondition = $ExitCondition
+            Delay = $Delay
         }
     }
     else {
@@ -351,7 +352,7 @@ function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Exe
     
     $Properties.Add('CheckpointAfter', $Value.CheckpointAfter)
     $Properties.Add('ExceptionsToErrors', $Value.ExceptionsToErrors)
-    $Properties.Add('Retry', (CreateRetry -ExitCondition $Value.LoopExitCondition))
+    $Properties.Add('Retry', (CreateRetry -ExitCondition $Value.LoopExitCondition -Delay $Value.LoopDelay))
 
     $Properties.Add('Position', (NullIfPositionZeroZero $Value))
 
@@ -459,6 +460,9 @@ function ConvertValueToPsd($IndentLevel, $Value) {
     }
     elseif ($Value -is [scriptblock]) {
         ConvertScriptBlockToPsd -IndentLevel $IndentLevel -Value $Value
+    }
+    elseif ($Value -is [System.TimeSpan]) {
+        $Value.Ticks
     }
     elseif ($Value -is [System.Collections.IList]) {
         ConvertListToPsd -IndentLevel $IndentLevel -Value $Value
