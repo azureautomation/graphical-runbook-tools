@@ -314,28 +314,25 @@ function GetActivityTypeName([Orchestrator.GraphRunbook.Model.ExecutableView.IAc
 
 function ConvertActivityToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.ExecutableView.IActivity]$Value) {
     $Properties = [ordered]@{ }
+    
     $Properties.Add('Name', $Value.Name)
-
-    $Description = PrepareStringPropertyValue $Value.Description
-    $Properties.Add('Description', $Description)
-
-    $Properties.Add('Type', $(GetActivityTypeName $Value))
+    $Properties.Add('Description', (PrepareStringPropertyValue $Value.Description))
+    $Properties.Add('Type', (GetActivityTypeName $Value))
 
     $Properties.Add('Begin', $(if ($Value.Begin) { [scriptblock]::Create($Value.Begin) }))
     $Properties.Add('Process', $(if ($Value.Process) { [scriptblock]::Create($Value.Process) }))
     $Properties.Add('End', $(if ($Value.End) { [scriptblock]::Create($Value.End) }))
 
-    $Properties.Add('ModuleName', $(PrepareStringPropertyValue $Value.CommandType.ModuleName))
+    $Properties.Add('ModuleName', (PrepareStringPropertyValue $Value.CommandType.ModuleName))
     $Properties.Add('CommandName', $Value.InvocationActivityType.CommandName)
-    $Properties.Add('Parameters', $(PrepareDictionaryPropertyValue $Value.Parameters))
-    $Properties.Add('CustomParameters', $(PrepareStringPropertyValue $Value.CustomParameters))
+    $Properties.Add('Parameters', (PrepareDictionaryPropertyValue $Value.Parameters))
+    $Properties.Add('CustomParameters', (PrepareStringPropertyValue $Value.CustomParameters))
     
     $Properties.Add('CheckpointAfter', $Value.CheckpointAfter)
     $Properties.Add('ExceptionsToErrors', $Value.ExceptionsToErrors)
     $Properties.Add('LoopExitCondition', $Value.LoopExitCondition)
 
-    $Position = PreparePositionPropertyValue $Value
-    $Properties.Add('Position', $Position)
+    $Properties.Add('Position', (PreparePositionPropertyValue $Value))
 
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value $Properties
 }
