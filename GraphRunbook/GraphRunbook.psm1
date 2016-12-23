@@ -21,10 +21,10 @@ function GetGraphTraces($ResourceGroupName, $AutomationAccountName, $JobId) {
             -Id $JobId `
             -Stream Verbose |
         Get-AzureRmAutomationJobOutputRecord |
-        % Value |
-        % Message |
-        ?{ $_.StartsWith($GraphTracePrefix) } |
-        %{ $_.Substring($GraphTracePrefix.Length) } |
+        ForEach-Object Value |
+        ForEach-Object Message |
+        Where-Object { $_.StartsWith($GraphTracePrefix) } |
+        ForEach-Object { $_.Substring($GraphTracePrefix.Length) } |
         ConvertFrom-Json
 }
 
@@ -74,8 +74,8 @@ function GetLatestJobByRunbookName($ResourceGroupName, $AutomationAccountName, $
                 -RunbookName $RunbookName `
                 -ResourceGroupName $ResourceGroupName `
                 -AutomationAccountName $AutomationAccountName |
-        sort StartTime -Descending |
-        select -First 1
+        Sort-Object StartTime -Descending |
+        Select-Object -First 1
 }
 
 function Show-GraphRunbookActivityTraces {
@@ -210,7 +210,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
 #region Convert-GraphRunbookToPowerShellData
 
 function Get-ActivityById([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook, $ActivityId) {
-    $Result = $Runbook.Activities | %{ $_ } | ?{ $_.EntityId -eq $ActivityId }
+    $Result = $Runbook.Activities | ForEach-Object { $_ } | Where-Object { $_.EntityId -eq $ActivityId }
     if (-not $Result) {
         throw "Cannot find activity by entity ID: $ActivityId"
     }
