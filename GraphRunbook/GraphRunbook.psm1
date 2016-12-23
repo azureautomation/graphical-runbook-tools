@@ -549,6 +549,9 @@ function Get-GraphRunbookFromFile($FileName) {
 }
 
 function New-TemporaryDirectory {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "", Scope="Function")]
+    param()
+
     $parent = [System.IO.Path]::GetTempPath()
     [string]$name = [System.Guid]::NewGuid()
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
