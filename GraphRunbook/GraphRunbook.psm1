@@ -407,7 +407,7 @@ function ConvertLinkToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Link]$V
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
         From = $FromActivity.Name
         To = $ToActivity.Name
-        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Description = (NullIfEmptyString $Value.Description)
         Stream = $Value.LinkStreamType
         Type = $Value.LinkType
         Condition = $Value.Condition
@@ -437,7 +437,7 @@ function ConvertCommentToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Comm
 function ConvertParameterToPsd($IndentLevel, [Orchestrator.GraphRunbook.Model.Parameter]$Value) {
     ConvertDictionaryToPsd -IndentLevel $IndentLevel -Value ([ordered]@{
         Name = $Value.Name
-        Description = $(if ($Value.Description) { $Value.Description } else { $null })
+        Description = (NullIfEmptyString $Value.Description)
         Mandatory = -not $Value.Optional
         DefaultValue = $Value.DefaultValue
     })
