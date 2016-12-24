@@ -5,6 +5,20 @@ Get-Module -Name $sut -All | Remove-Module -Force -ErrorAction Ignore
 Import-Module -Name "$here\$sut.psm1" -Force -ErrorAction Stop
 
 InModuleScope $sut {
+    function WithRunbookFile(
+            [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
+            [scriptblock]$Action) {
+        $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
+        $File = New-TemporaryFile
+        try {
+            $SerializedRunbook | Out-File $File.FullName
+            $Action.Invoke($File)
+        }
+        finally {
+            Remove-Item $File -ErrorAction SilentlyContinue
+        }
+    }
+    
     Describe "Show-GraphRunbookActivityTraces" {
 
         $TestJobId = New-Guid
@@ -908,10 +922,9 @@ Links = @(
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'
             $Runbook.AddActivity($Activity)
-            $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
-            $File = New-TemporaryFile
-            try {
-                $SerializedRunbook | Out-File $File.FullName
+
+            WithRunbookFile -Runbook $Runbook -Action {
+                param($File)
 
                 It "Converts GraphRunbook to text" {
                     $Text = Convert-GraphRunbookToPowerShellData -RunbookFileName $File.FullName
@@ -930,9 +943,6 @@ Activities = @(
 
 "@
                 }
-            }
-            finally {
-                Remove-Item $File -ErrorAction SilentlyContinue
             }
         }
 
