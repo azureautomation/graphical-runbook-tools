@@ -991,4 +991,30 @@ Activities = @(
             }
         }
     }
+
+    Describe "Get-GraphRunbookDependency" {
+        Context "When modules are requested" {
+            function New-CommandActivity($ModuleName) {
+                $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+                $CommandActivityType.ModuleName = $ModuleName
+                $CommandActivityType.CommandName = 'Do-Something'
+                New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            }
+
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-CommandActivity 'ModuleA'))
+            $Runbook.AddActivity((New-CommandActivity 'ModuleB'))
+            $Runbook.AddActivity((New-CommandActivity 'ModuleA'))
+            $Runbook.AddActivity((New-CommandActivity ''))
+            $Runbook.AddActivity((New-CommandActivity 'modulea'))
+            $Runbook.AddActivity((New-CommandActivity 'MODULEB'))
+            
+            It "Outputs required modules" {
+                $RequiredModules = Get-GraphRunbookDependency -Runbook $Runbook -Modules
+                $RequiredModules.Count | Should be 2
+                $RequiredModules[0] | Should be 'ModuleA'
+                $RequiredModules[1] | Should be 'ModuleB'
+            }
+        }
+    }
 }
