@@ -738,9 +738,30 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 #region Get-GraphRunbookDependency
 
 function Get-GraphRunbookDependencyByGraphRunbook(
-    [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
+    [string]$DependencyType) {
 
-    $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Sort-Object -Unique | Where-Object { $_ }
+    if ($DependencyType -ieq 'Module') {
+        $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Sort-Object -Unique | Where-Object { $_ }
+    }
+    elseif ($DependencyType -ieq 'AutomationAsset') {
+        $Parameters = $Runbook.Activities | ForEach-Object Parameters
+        $ParameterValueDescriptors = $Parameters | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
+        foreach ($ValueDescriptor in $ParameterValueDescriptors) {
+            if ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor]) {
+                @{ Name = $ValueDescriptor.CertificateName; Type = 'AutomationCertificate' }
+            }
+            elseif ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor]) {
+                @{ Name = $ValueDescriptor.CredentialName; Type = 'AutomationCredential' }
+            }
+            elseif ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor]) {
+                @{ Name = $ValueDescriptor.ConnectionName; Type = 'AutomationConnection' }
+            }
+            elseif ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor]) {
+                @{ Name = $ValueDescriptor.VariableName; Type = 'AutomationVariable' }
+            }
+        }
+    }
 }
 
 function Get-GraphRunbookDependency {
@@ -783,21 +804,20 @@ function Get-GraphRunbookDependency {
         $Slot = 'Published',
 
         [string]
-        $GraphicalAuthoringSdkDirectory,
+        $DependencyType = 'All',
 
-        [switch]
-        $Modules
+        [string]
+        $GraphicalAuthoringSdkDirectory
     )
     
     Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
 
     switch ($PSCmdlet.ParameterSetName) {
         'ByGraphRunbook' {
-            Get-GraphRunbookDependencyByGraphRunbook $Runbook -ErrorAction Stop
+            Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType -ErrorAction Stop
         }
 
         'ByRunbookFileName' {
-            Get-GraphRunbookDependencyByRunbookFileName $RunbookFileName -ErrorAction Stop
         }
 
         'ByRunbookName' {

@@ -1010,10 +1010,34 @@ Activities = @(
             $Runbook.AddActivity((New-CommandActivity 'MODULEB'))
             
             It "Outputs required modules" {
-                $RequiredModules = Get-GraphRunbookDependency -Runbook $Runbook -Modules
-                $RequiredModules.Count | Should be 2
+                $RequiredModules = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Module
+                $RequiredModules | Measure-Object | ForEach-Object Count | Should be 2
                 $RequiredModules[0] | Should be 'ModuleA'
                 $RequiredModules[1] | Should be 'ModuleB'
+            }
+        }
+
+        Context "When Automation Assets are requested" {
+            function New-CommandActivity($ValueDescriptors) {
+                $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+                $CommandActivityType.CommandName = 'Do-Something'
+                $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+                $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+                foreach ($ValueDescriptor in $ValueDescriptors) {
+                    [void]$Activity.Parameters.Add((New-Guid).ToString(), $ValueDescriptor)
+                }
+                $Activity
+            }
+
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            $Runbook.AddActivity((New-CommandActivity (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1')))
+            
+            It "Outputs required Automation Assets" {
+                $RequiredAssets = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType AutomationAsset
+                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredAssets[0].Name | Should be 'Variable1'
+                $RequiredAssets[0].Type | Should be 'AutomationVariable'
             }
         }
     }
