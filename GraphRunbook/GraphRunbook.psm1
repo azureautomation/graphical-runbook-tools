@@ -747,7 +747,8 @@ function Get-GraphRunbookDependencyByGraphRunbook(
     [string]$DependencyType) {
 
     if ($DependencyType -ieq 'Module') {
-        $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Sort-Object -Unique | Where-Object { $_ }
+        $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Sort-Object -Unique | Where-Object { $_ } |
+            ForEach-Object { @{ Name = $_; Type = 'Module' } }
     }
     elseif ($DependencyType -ieq 'AutomationAsset') {
         $ValueDescriptors = Get-ValueDescriptor $Runbook

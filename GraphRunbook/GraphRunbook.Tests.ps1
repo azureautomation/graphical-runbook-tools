@@ -1012,8 +1012,10 @@ Activities = @(
             It "Outputs required modules" {
                 $RequiredModules = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Module
                 $RequiredModules | Measure-Object | ForEach-Object Count | Should be 2
-                $RequiredModules[0] | Should be 'ModuleA'
-                $RequiredModules[1] | Should be 'ModuleB'
+                ($RequiredModules[0].Name -ieq 'ModuleA') | Should be $true
+                $RequiredModules[0].Type | Should be 'Module'
+                ($RequiredModules[1].Name -ieq 'ModuleB') | Should be $true
+                $RequiredModules[1].Type | Should be 'Module'
             }
         }
 
