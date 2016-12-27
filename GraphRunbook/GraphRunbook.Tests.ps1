@@ -1033,6 +1033,7 @@ Activities = @(
 
             $Runbook.AddActivity((New-CommandActivity `
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'VARIABLE1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable2'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'Certificate2')))
@@ -1045,12 +1046,21 @@ Activities = @(
             
             It "Outputs required Automation Assets" {
                 $RequiredAssets = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType AutomationAsset
-                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 4
+                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 5
+
                 $RequiredVariables = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationVariable' }
                 $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 2
-                
                 ($RequiredVariables[0].Name -ieq 'Variable1') | Should be $true
                 $RequiredVariables[1].Name | Should be 'Variable2'
+                
+                $RequiredCertificates = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationCertificate' }
+                $RequiredCertificates | Measure-Object | ForEach-Object Count | Should be 2
+                $RequiredCertificates[0].Name | Should be 'certificate1'
+                $RequiredCertificates[1].Name | Should be 'Certificate2'
+                
+                $RequiredCredentials = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationCredential' }
+                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredCredentials.Name | Should be 'Credential1'
             }
         }
     }
