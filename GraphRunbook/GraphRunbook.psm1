@@ -747,22 +747,22 @@ function Get-GraphRunbookDependencyByGraphRunbook(
     [string]$DependencyType) {
 
     if ($DependencyType -ieq 'Module') {
-        $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Sort-Object -Unique | Where-Object { $_ } |
+        $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Where-Object { $_ } | Sort-Object -Unique |
             ForEach-Object { @{ Name = $_; Type = 'Module' } }
     }
     elseif ($DependencyType -ieq 'AutomationAsset') {
         $ValueDescriptors = Get-ValueDescriptor $Runbook
 
-        $ValueDescriptors | ForEach-Object VariableName | Sort-Object -Unique | Where-Object { $_ } |
+        $ValueDescriptors | ForEach-Object VariableName | Where-Object { $_ } | Sort-Object -Unique |
             ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
         
-        $ValueDescriptors | ForEach-Object CertificateName | Sort-Object -Unique | Where-Object { $_ } |
+        $ValueDescriptors | ForEach-Object CertificateName | Where-Object { $_ } | Sort-Object -Unique |
             ForEach-Object { @{ Name = $_; Type = 'AutomationCertificate' } }
         
-        $ValueDescriptors | ForEach-Object ConnectionName | Sort-Object -Unique | Where-Object { $_ } |
+        $ValueDescriptors | ForEach-Object ConnectionName | Where-Object { $_ } | Sort-Object -Unique |
             ForEach-Object { @{ Name = $_; Type = 'AutomationConnection' } }
         
-        $ValueDescriptors | ForEach-Object CredentialName | Sort-Object -Unique | Where-Object { $_ } |
+        $ValueDescriptors | ForEach-Object CredentialName | Where-Object { $_ } | Sort-Object -Unique |
             ForEach-Object { @{ Name = $_; Type = 'AutomationCredential' } }
     }
 }
