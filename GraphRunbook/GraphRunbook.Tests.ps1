@@ -1031,22 +1031,26 @@ Activities = @(
 
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
-            $Runbook.AddActivity((New-CommandActivity (
-                New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1')))
-            $Runbook.AddActivity((New-CommandActivity (
-                New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'VARIABLE1')))
-            $Runbook.AddActivity((New-CommandActivity (
-                New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable2')))
-            $Runbook.AddActivity((New-CommandActivity (
-                New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'variable1')))
+            $Runbook.AddActivity((New-CommandActivity `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'VARIABLE1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable2'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'Certificate2')))
+
+            $Runbook.AddActivity((New-CommandActivity @()))
+
+            $Runbook.AddActivity((New-CommandActivity `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'certificate1')))
             
             It "Outputs required Automation Assets" {
                 $RequiredAssets = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType AutomationAsset
-                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 2
-                ($RequiredAssets[0].Name -ieq 'Variable1') | Should be $true
-                $RequiredAssets[0].Type | Should be 'AutomationVariable'
-                $RequiredAssets[1].Name | Should be 'Variable2'
-                $RequiredAssets[1].Type | Should be 'AutomationVariable'
+                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 4
+                $RequiredVariables = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationVariable' }
+                $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 2
+                
+                ($RequiredVariables[0].Name -ieq 'Variable1') | Should be $true
+                $RequiredVariables[1].Name | Should be 'Variable2'
             }
         }
     }

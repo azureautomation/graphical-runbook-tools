@@ -751,8 +751,12 @@ function Get-GraphRunbookDependencyByGraphRunbook(
     }
     elseif ($DependencyType -ieq 'AutomationAsset') {
         $ValueDescriptors = Get-ValueDescriptor $Runbook
-        $VariableNames = $ValueDescriptors | ForEach-Object VariableName | Sort-Object -Unique | Where-Object { $_ }
-        $VariableNames | ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
+
+        $ValueDescriptors | ForEach-Object VariableName | Sort-Object -Unique | Where-Object { $_ } |
+            ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
+        
+        $ValueDescriptors | ForEach-Object CertificateName | Sort-Object -Unique | Where-Object { $_ } |
+            ForEach-Object { @{ Name = $_; Type = 'AutomationCertificate' } }
     }
 }
 
