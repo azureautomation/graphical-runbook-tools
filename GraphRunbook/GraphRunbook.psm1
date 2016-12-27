@@ -737,6 +737,11 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
 #region Get-GraphRunbookDependency
 
+function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $Parameters = $Runbook.Activities | ForEach-Object Parameters
+    $Parameters | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
+}
+
 function Get-GraphRunbookDependencyByGraphRunbook(
     [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
     [string]$DependencyType) {
@@ -745,22 +750,9 @@ function Get-GraphRunbookDependencyByGraphRunbook(
         $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Sort-Object -Unique | Where-Object { $_ }
     }
     elseif ($DependencyType -ieq 'AutomationAsset') {
-        $Parameters = $Runbook.Activities | ForEach-Object Parameters
-        $ParameterValueDescriptors = $Parameters | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
-        foreach ($ValueDescriptor in $ParameterValueDescriptors) {
-            if ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor]) {
-                @{ Name = $ValueDescriptor.CertificateName; Type = 'AutomationCertificate' }
-            }
-            elseif ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor]) {
-                @{ Name = $ValueDescriptor.CredentialName; Type = 'AutomationCredential' }
-            }
-            elseif ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor]) {
-                @{ Name = $ValueDescriptor.ConnectionName; Type = 'AutomationConnection' }
-            }
-            elseif ($ValueDescriptor -is [Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor]) {
-                @{ Name = $ValueDescriptor.VariableName; Type = 'AutomationVariable' }
-            }
-        }
+        $ValueDescriptors = Get-ValueDescriptor $Runbook
+        $VariableNames = $ValueDescriptors | ForEach-Object VariableName | Sort-Object -Unique | Where-Object { $_ }
+        $VariableNames | ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
     }
 }
 
