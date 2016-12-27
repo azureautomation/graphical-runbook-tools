@@ -1035,18 +1035,21 @@ Activities = @(
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'VARIABLE1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection3'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable2'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'Certificate2')))
 
             $Runbook.AddActivity((New-CommandActivity @()))
 
             $Runbook.AddActivity((New-CommandActivity `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection2'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'variable1'),
-                (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'certificate1')))
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'certificate1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection1')))
             
             It "Outputs required Automation Assets" {
                 $RequiredAssets = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType AutomationAsset
-                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 5
+                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 8
 
                 $RequiredVariables = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationVariable' }
                 $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 2
@@ -1057,6 +1060,12 @@ Activities = @(
                 $RequiredCertificates | Measure-Object | ForEach-Object Count | Should be 2
                 $RequiredCertificates[0].Name | Should be 'certificate1'
                 $RequiredCertificates[1].Name | Should be 'Certificate2'
+                
+                $RequiredConnections = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationConnection' }
+                $RequiredConnections | Measure-Object | ForEach-Object Count | Should be 3
+                $RequiredConnections[0].Name | Should be 'Connection1'
+                $RequiredConnections[1].Name | Should be 'Connection2'
+                $RequiredConnections[2].Name | Should be 'Connection3'
                 
                 $RequiredCredentials = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationCredential' }
                 $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1

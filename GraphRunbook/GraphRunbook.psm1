@@ -758,6 +758,9 @@ function Get-GraphRunbookDependencyByGraphRunbook(
         $ValueDescriptors | ForEach-Object CertificateName | Sort-Object -Unique | Where-Object { $_ } |
             ForEach-Object { @{ Name = $_; Type = 'AutomationCertificate' } }
         
+        $ValueDescriptors | ForEach-Object ConnectionName | Sort-Object -Unique | Where-Object { $_ } |
+            ForEach-Object { @{ Name = $_; Type = 'AutomationConnection' } }
+        
         $ValueDescriptors | ForEach-Object CredentialName | Sort-Object -Unique | Where-Object { $_ } |
             ForEach-Object { @{ Name = $_; Type = 'AutomationCredential' } }
     }
