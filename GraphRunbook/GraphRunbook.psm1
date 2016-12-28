@@ -779,6 +779,15 @@ function Get-GraphRunbookDependencyByGraphRunbook(
     }
 }
 
+function Get-GraphRunbookDependencyByRunbookFileName(
+    [string]$RunbookFileName,
+    [string]$DependencyType) {
+
+    Write-Verbose "Inspecting runbook file $RunbookFileName"
+    $Runbook = Get-GraphRunbookFromFile -FileName $RunbookFileName
+    Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType
+}
+
 function Get-GraphRunbookDependency {
     [CmdletBinding()]
     param(
@@ -833,6 +842,7 @@ function Get-GraphRunbookDependency {
         }
 
         'ByRunbookFileName' {
+            Get-GraphRunbookDependencyByRunbookFileName -RunbookFileName $RunbookFileName -DependencyType $DependencyType -ErrorAction Stop
         }
 
         'ByRunbookName' {

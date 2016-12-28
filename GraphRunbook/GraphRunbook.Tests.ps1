@@ -1094,5 +1094,35 @@ Activities = @(
                 $RequiredCredentials.Name | Should be 'Credential1'
             }
         }
+
+        Context "When .graphrunbook file name is provided" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
+            
+            WithRunbookFile -Runbook $Runbook -Action {
+                param($File)
+
+                It "Outputs all dependencies" {
+                    $AllDependencies = Get-GraphRunbookDependency -RunbookFileName $File.FullName -DependencyType All
+                    $AllDependencies | Measure-Object | ForEach-Object Count | Should be 3
+
+                    $RequiredModules = $AllDependencies | Where-Object { $_.Type -eq 'Module' }
+                    $RequiredModules | Measure-Object | ForEach-Object Count | Should be 1
+                    $RequiredModules.Name | Should be 'ModuleA'
+
+                    $RequiredVariables = $AllDependencies | Where-Object { $_.Type -eq 'AutomationVariable' }
+                    $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 1
+                    $RequiredVariables.Name | Should be 'Variable1'
+                    
+                    $RequiredCredentials = $AllDependencies | Where-Object { $_.Type -eq 'AutomationCredential' }
+                    $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                    $RequiredCredentials.Name | Should be 'Credential1'
+                }
+            }
+        }
     }
 }
