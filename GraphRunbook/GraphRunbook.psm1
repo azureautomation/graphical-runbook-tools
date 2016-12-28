@@ -744,9 +744,26 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
 #region Get-GraphRunbookDependency
 
+Add-Type -Language 'CSharp' -TypeDefinition @"
+    namespace GraphRunbook
+    {
+        public class Dependency
+        {
+            public Dependency(string type, string name)
+            {
+                this.Type = type;
+                this.Name = name;
+            }
+
+            public string Type { get; set; }
+            public string Name { get; set; }
+        }
+    }
+"@
+
 function Get-RequiredModules([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
     $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { @{ Name = $_; Type = 'Module' } }
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'Module', $_ }
 }
 
 function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
@@ -758,16 +775,16 @@ function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunb
     $ValueDescriptors = Get-ValueDescriptor $Runbook
 
     $ValueDescriptors | ForEach-Object VariableName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationVariable', $_ }
     
     $ValueDescriptors | ForEach-Object CertificateName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { @{ Name = $_; Type = 'AutomationCertificate' } }
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationCertificate', $_ }
     
     $ValueDescriptors | ForEach-Object ConnectionName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { @{ Name = $_; Type = 'AutomationConnection' } }
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationConnection', $_ }
     
     $ValueDescriptors | ForEach-Object CredentialName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { @{ Name = $_; Type = 'AutomationCredential' } }
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationCredential', $_ }
 }
 
 function Get-GraphRunbookDependencyByGraphRunbook(
@@ -804,6 +821,7 @@ function Get-GraphRunbookDependencyByRunbookName($RunbookName, $Slot, $ResourceG
 
 function Get-GraphRunbookDependency {
     [CmdletBinding()]
+    [OutputType([GraphRunbook.Dependency])]
     param(
         [Parameter(
             Mandatory = $true,
