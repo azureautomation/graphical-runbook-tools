@@ -841,6 +841,7 @@ function Get-GraphRunbookDependency {
         [string]
         $Slot = 'Published',
 
+        [ValidateSet('Module', 'AutomationAsset', 'All')]
         [string]
         $DependencyType = 'All',
 
