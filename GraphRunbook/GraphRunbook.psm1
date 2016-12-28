@@ -820,6 +820,67 @@ function Get-GraphRunbookDependencyByRunbookName($RunbookName, $Slot, $ResourceG
 }
 
 function Get-GraphRunbookDependency {
+<#
+.SYNOPSIS
+Outputs graphical runbook dependencies
+
+.DESCRIPTION
+Inspects a graphical runbook and outputs explicitly specified dependencies: module names, Automation Asset (Certificate, Connection, Credential, and Variable) names, runbook names.
+
+Prerequisites
+=============
+
+1. Install Microsoft Azure Automation Graphical Authoring SDK (https://www.microsoft.com/en-us/download/details.aspx?id=50734).
+
+2. Before invoking Get-GraphRunbookDependency with RunbookName, ResourceGroupName, and AutomationAccountName parameters, make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet).
+
+.PARAMETER Runbook
+An instance of Orchestrator.GraphRunbook.Model.GraphRunbook type
+
+.PARAMETER GraphicalAuthoringSdkDirectory
+Microsoft Azure Automation Graphical Authoring SDK installation directory
+
+.PARAMETER RunbookFileName
+Runbook file name (.graphrunbook)
+
+.PARAMETER RunbookName
+Runbook name
+
+.PARAMETER Slot
+Specifies whether this cmdlet converts the draft or published content of the runbook. Valid values are:
+        -- Published
+        -- Draft
+
+.PARAMETER ResourceGroupName
+Azure Resource Group name
+
+.PARAMETER AutomationAccountName
+Azure Automation Account name
+
+.PARAMETER DependencyType
+Dependency type: Module, AutomationAsset, or All (default)
+
+.EXAMPLE
+Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -DependencyType Module
+Output modules that the specified runbook depends on.
+
+.EXAMPLE
+Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -DependencyType All
+Output all dependencies of the specified runbook.
+
+.EXAMPLE
+Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
+Specify the Microsoft Azure Automation Graphical Authoring SDK installation directory.
+
+.LINK
+Source code: https://github.com/azureautomation/graphical-runbook-tools
+
+.LINK
+Azure Automation: https://azure.microsoft.com/services/automation
+
+.LINK
+Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en-us/download/details.aspx?id=50734
+#>
     [CmdletBinding()]
     [OutputType([GraphRunbook.Dependency])]
     param(
