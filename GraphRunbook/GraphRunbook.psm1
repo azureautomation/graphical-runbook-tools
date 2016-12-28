@@ -676,7 +676,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
 Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en-us/download/details.aspx?id=50734
 #>
     [CmdletBinding()]
-
+    [OutputType([string])]
     param(
         [Parameter(
             Mandatory = $true,
