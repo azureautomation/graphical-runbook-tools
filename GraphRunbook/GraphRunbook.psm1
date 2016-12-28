@@ -774,7 +774,15 @@ function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runb
 function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
     $ValueDescriptors = Get-ValueDescriptor $Runbook
 
-    $ValueDescriptors | ForEach-Object VariableName | Where-Object { $_ } | Sort-Object -Unique |
+    $VariableNames = $ValueDescriptors | ForEach-Object VariableName
+
+    $VariableNames += $Runbook.Activities |
+        Where-Object { ('Get-AutomationVariable', 'Set-AutomationVariable') -icontains $_.CommandType.CommandName } |
+        ForEach-Object { $_.Parameters['Name'] } |
+        Where-Object { $_ -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor] } |
+        ForEach-Object { $_.Value }
+
+    $VariableNames | Where-Object { $_ } | Sort-Object -Unique |
         ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationVariable', $_ }
     
     $ValueDescriptors | ForEach-Object CertificateName | Where-Object { $_ } | Sort-Object -Unique |
