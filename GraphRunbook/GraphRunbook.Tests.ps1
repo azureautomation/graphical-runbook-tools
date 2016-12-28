@@ -1124,5 +1124,56 @@ Activities = @(
                 }
             }
         }
+
+        Context "When runbook name is provided" {
+            $TestResourceGroup = 'TestResourceGroupName'
+            $TestAutomationAccount = 'TestAccountName'
+            $TestRunbookName = 'TestRunbookName'
+
+            Mock Export-AzureRMAutomationRunbook -Verifiable `
+                -MockWith {
+                    $ResourceGroupName | Should be $TestResourceGroup > $null
+                    $AutomationAccountName | Should be $AutomationAccountName > $null
+                    $Name | Should be $TestRunbookName > $null
+                    $Slot | Should be 'Published' > $null
+
+                    $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+                    [void]$Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+
+                    [void]$Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                        (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                        (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
+                    
+                    $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
+                    $OutputFileName = Join-Path $OutputFolder "$Name.graphrunbook"
+                    $SerializedRunbook | Out-File $OutputFileName
+
+                    Get-Item -Path $OutputFileName
+                }
+
+            It "Converts GraphRunbook to text" {
+                $AllDependencies = Get-GraphRunbookDependency `
+                    -RunbookName $TestRunbookName `
+                    -ResourceGroupName $TestResourceGroup `
+                    -AutomationAccount $TestAutomationAccount `
+                    -DependencyType All
+
+                $AllDependencies | Measure-Object | ForEach-Object Count | Should be 3
+
+                $RequiredModules = $AllDependencies | Where-Object { $_.Type -eq 'Module' }
+                $RequiredModules | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredModules.Name | Should be 'ModuleA'
+
+                $RequiredVariables = $AllDependencies | Where-Object { $_.Type -eq 'AutomationVariable' }
+                $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredVariables.Name | Should be 'Variable1'
+                
+                $RequiredCredentials = $AllDependencies | Where-Object { $_.Type -eq 'AutomationCredential' }
+                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredCredentials.Name | Should be 'Credential1'
+
+                Assert-VerifiableMocks
+            }
+        }
     }
 }

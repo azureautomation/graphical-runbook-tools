@@ -579,7 +579,7 @@ function Convert-GraphRunbookFileToPowerShellData($RunbookFileName) {
     Convert-GraphRunbookObjectToPowerShellData $Runbook
 }
 
-function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName) {
+function WithExportedRunbook($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName, [scriptblock]$Action) {
     $OutputFolder = New-TemporaryDirectory
     Write-Verbose "Created temporary directory: $OutputFolder"
     try {
@@ -594,10 +594,17 @@ function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $Resou
         $FullFileName = Join-Path $OutputFolder $RunbookFile.Name
         Write-Verbose "Exported runbook '$RunbookName' to file '$FullFileName'"
 
-        Convert-GraphRunbookFileToPowerShellData $FullFileName
+        $Action.Invoke($FullFileName)
     }
     finally {
         Remove-Item $OutputFolder -Recurse -Force
+    }
+}
+
+function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName) {
+    WithExportedRunbook -RunbookName $RunbookName -Slot $Slot -ResourceGroupName $ResourceGroupName -AutomationAccountName $AutomationAccountName -Action {
+        param($FullFileName)
+        Convert-GraphRunbookFileToPowerShellData $FullFileName
     }
 }
 
@@ -788,6 +795,13 @@ function Get-GraphRunbookDependencyByRunbookFileName(
     Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType
 }
 
+function Get-GraphRunbookDependencyByRunbookName($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName, $DependencyType) {
+    WithExportedRunbook -RunbookName $RunbookName -Slot $Slot -ResourceGroupName $ResourceGroupName -AutomationAccountName $AutomationAccountName -Action {
+        param($FullFileName)
+        Get-GraphRunbookDependencyByRunbookFileName -RunbookFileName $FullFileName -DependencyType $DependencyType
+    }
+}
+
 function Get-GraphRunbookDependency {
     [CmdletBinding()]
     param(
@@ -846,6 +860,13 @@ function Get-GraphRunbookDependency {
         }
 
         'ByRunbookName' {
+            Get-GraphRunbookDependencyByRunbookName `
+                -RunbookName $RunbookName `
+                -Slot $Slot `
+                -ResourceGroupName $ResourceGroupName `
+                -AutomationAccountName $AutomationAccountName `
+                -DependencyType $DependencyType `
+                -ErrorAction Stop
         }
     }
 }
