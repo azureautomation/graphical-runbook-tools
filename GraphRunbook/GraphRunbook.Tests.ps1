@@ -1124,12 +1124,36 @@ Activities = @(
         Context "When runbooks are requested" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookA'))
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookB'))
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'runbooka'))
+
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = 'Start-AzureRmAutomationRunbook'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $ValueDescriptor = New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'RunbookC'
+            $Activity.Parameters.Add('Name', $ValueDescriptor)
+            $Runbook.AddActivity($Activity)
+
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = 'Start-AzureAutomationRunbook'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $ValueDescriptor = New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'RunbookD'
+            $Activity.Parameters.Add('Name', $ValueDescriptor)
+            $Runbook.AddActivity($Activity)
 
             It "Outputs required runbooks" {
                 $RequiredRunbooks = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Runbook
-                $RequiredRunbooks | Measure-Object | ForEach-Object Count | Should be 1
-                $RequiredRunbooks.Name | Should be 'RunbookA'
-                $RequiredRunbooks.Type | Should be 'Runbook'
+                $RequiredRunbooks | Measure-Object | ForEach-Object Count | Should be 4
+                ($RequiredRunbooks[0].Name -ieq 'RunbookA') | Should be $true
+                $RequiredRunbooks[0].Type | Should be 'Runbook'
+                $RequiredRunbooks[1].Name | Should be 'RunbookB'
+                $RequiredRunbooks[1].Type | Should be 'Runbook'
+                $RequiredRunbooks[2].Name | Should be 'RunbookC'
+                $RequiredRunbooks[2].Type | Should be 'Runbook'
+                $RequiredRunbooks[3].Name | Should be 'RunbookD'
+                $RequiredRunbooks[3].Type | Should be 'Runbook'
             }
         }
 

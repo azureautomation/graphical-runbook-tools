@@ -819,7 +819,15 @@ function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunb
 function Get-RequiredRunbooks([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
     $NamesFromInvokeRunbookActivity = $Runbook.Activities | ForEach-Object RunbookActivityType | ForEach-Object CommandName
 
-    $NamesFromInvokeRunbookActivity | Where-Object { $_ } | Sort-Object -Unique |
+    $NamesFromCommandActivity = $Runbook.Activities |
+        Where-Object { @('Start-AzureAutomationRunbook', 'Start-AzureRmAutomationRunbook') -icontains $_.CommandType.CommandName } |
+        ForEach-Object { $_.Parameters['Name'] } |
+        Where-Object { $_ -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor] } |
+        ForEach-Object { $_.Value }
+
+    $AllNames = $NamesFromInvokeRunbookActivity + $NamesFromCommandActivity
+
+    $AllNames | Where-Object { $_ } | Sort-Object -Unique |
         ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'Runbook', $_ }
 }
 
