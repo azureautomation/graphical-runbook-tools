@@ -771,28 +771,31 @@ function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runb
     $Parameters | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
 }
 
-function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+function Get-AutomationAssets(
+    [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
+    [string]$ValueDescriptorPropertyName,
+    [string[]]$CommandNames,
+    [string]$DependencyType) {
+
     $ValueDescriptors = Get-ValueDescriptor $Runbook
 
-    $VariableNames = $ValueDescriptors | ForEach-Object VariableName
+    $AssetNames = $ValueDescriptors | ForEach-Object -MemberName $ValueDescriptorPropertyName
 
-    $VariableNames += $Runbook.Activities |
-        Where-Object { ('Get-AutomationVariable', 'Set-AutomationVariable') -icontains $_.CommandType.CommandName } |
+    $AssetNames += $Runbook.Activities |
+        Where-Object { $CommandNames -icontains $_.CommandType.CommandName } |
         ForEach-Object { $_.Parameters['Name'] } |
         Where-Object { $_ -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor] } |
         ForEach-Object { $_.Value }
 
-    $VariableNames | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationVariable', $_ }
-    
-    $ValueDescriptors | ForEach-Object CertificateName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationCertificate', $_ }
-    
-    $ValueDescriptors | ForEach-Object ConnectionName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationConnection', $_ }
-    
-    $ValueDescriptors | ForEach-Object CredentialName | Where-Object { $_ } | Sort-Object -Unique |
-        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'AutomationCredential', $_ }
+    $AssetNames | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList $DependencyType, $_ }
+}
+
+function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CertificateName -CommandNames 'Get-AutomationCertificate' -DependencyType AutomationCertificate
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName ConnectionName -CommandNames 'Get-AutomationConnection' -DependencyType AutomationConnection
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CredentialName -CommandNames 'Get-AutomationCredential' -DependencyType AutomationCredential
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName VariableName -CommandNames ('Get-AutomationVariable', 'Set-AutomationVariable') -DependencyType AutomationVariable
 }
 
 function Get-GraphRunbookDependencyByGraphRunbook(
