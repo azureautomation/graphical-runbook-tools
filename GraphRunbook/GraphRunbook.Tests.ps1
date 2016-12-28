@@ -993,21 +993,26 @@ Activities = @(
     }
 
     Describe "Get-GraphRunbookDependency" {
-        Context "When modules are requested" {
-            function New-CommandActivity($ModuleName) {
-                $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
-                $CommandActivityType.ModuleName = $ModuleName
-                $CommandActivityType.CommandName = 'Do-Something'
-                New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+        function New-CommandActivity($ModuleName, $ValueDescriptors) {
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.ModuleName = $ModuleName
+            $CommandActivityType.CommandName = 'Do-Something'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            foreach ($ValueDescriptor in $ValueDescriptors) {
+                [void]$Activity.Parameters.Add((New-Guid).ToString(), $ValueDescriptor)
             }
+            $Activity
+        }
 
+        Context "When modules are requested" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
-            $Runbook.AddActivity((New-CommandActivity 'ModuleA'))
-            $Runbook.AddActivity((New-CommandActivity 'ModuleB'))
-            $Runbook.AddActivity((New-CommandActivity 'ModuleA'))
-            $Runbook.AddActivity((New-CommandActivity ''))
-            $Runbook.AddActivity((New-CommandActivity 'modulea'))
-            $Runbook.AddActivity((New-CommandActivity 'MODULEB'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleB'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName ''))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'modulea'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'MODULEB'))
             
             It "Outputs required modules" {
                 $RequiredModules = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Module
@@ -1020,20 +1025,9 @@ Activities = @(
         }
 
         Context "When Automation Assets are requested" {
-            function New-CommandActivity($ValueDescriptors) {
-                $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
-                $CommandActivityType.CommandName = 'Do-Something'
-                $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
-                $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
-                foreach ($ValueDescriptor in $ValueDescriptors) {
-                    [void]$Activity.Parameters.Add((New-Guid).ToString(), $ValueDescriptor)
-                }
-                $Activity
-            }
-
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
 
-            $Runbook.AddActivity((New-CommandActivity `
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'VARIABLE1'),
@@ -1041,9 +1035,9 @@ Activities = @(
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable2'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'Certificate2')))
 
-            $Runbook.AddActivity((New-CommandActivity @()))
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors @()))
 
-            $Runbook.AddActivity((New-CommandActivity `
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection2'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'variable1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'certificate1'),
