@@ -1035,6 +1035,17 @@ Activities = @(
             New-AssetAccessCommandActivity -CommandName 'Set-AutomationVariable' -AssetName $VariableName
         }
 
+        function New-InvokeRunbookActivity($RunbookName, $ValueDescriptors) {
+            $InvokeRunbookCommandActivityType = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivityType
+            $InvokeRunbookCommandActivityType.CommandName = $RunbookName
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivity -ArgumentList New-Guid, $InvokeRunbookCommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            foreach ($ValueDescriptor in $ValueDescriptors) {
+                [void]$Activity.Parameters.Add((New-Guid).ToString(), $ValueDescriptor)
+            }
+            $Activity
+        }
+
         Context "When modules are requested" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
@@ -1110,6 +1121,18 @@ Activities = @(
             }
         }
 
+        Context "When runbooks are requested" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookA'))
+
+            It "Outputs required runbooks" {
+                $RequiredRunbooks = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Runbook
+                $RequiredRunbooks | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredRunbooks.Name | Should be 'RunbookA'
+                $RequiredRunbooks.Type | Should be 'Runbook'
+            }
+        }
+
         Context "When all dependencies are requested" {
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
@@ -1117,10 +1140,12 @@ Activities = @(
             $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
+
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookA'))
             
             It "Outputs all dependencies" {
                 $AllDependencies = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType All
-                $AllDependencies | Measure-Object | ForEach-Object Count | Should be 3
+                $AllDependencies | Measure-Object | ForEach-Object Count | Should be 4
 
                 $RequiredModules = $AllDependencies | Where-Object { $_.Type -eq 'Module' }
                 $RequiredModules | Measure-Object | ForEach-Object Count | Should be 1
@@ -1133,6 +1158,10 @@ Activities = @(
                 $RequiredCredentials = $AllDependencies | Where-Object { $_.Type -eq 'AutomationCredential' }
                 $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
                 $RequiredCredentials.Name | Should be 'Credential1'
+
+                $RequiredRunbooks = $AllDependencies | Where-Object { $_.Type -eq 'Runbook' }
+                $RequiredRunbooks | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredRunbooks.Name | Should be 'RunbookA'
             }
         }
 

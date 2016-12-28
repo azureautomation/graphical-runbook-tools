@@ -816,6 +816,13 @@ function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunb
         -DependencyType AutomationVariable
 }
 
+function Get-RequiredRunbooks([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $NamesFromInvokeRunbookActivity = $Runbook.Activities | ForEach-Object RunbookActivityType | ForEach-Object CommandName
+
+    $NamesFromInvokeRunbookActivity | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'Runbook', $_ }
+}
+
 function Get-GraphRunbookDependencyByGraphRunbook(
     [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
     [string]$DependencyType) {
@@ -826,9 +833,13 @@ function Get-GraphRunbookDependencyByGraphRunbook(
     elseif ($DependencyType -ieq 'AutomationAsset') {
         Get-RequiredAutomationAssets -Runbook $Runbook
     }
+    elseif ($DependencyType -ieq 'Runbook') {
+        Get-RequiredRunbooks -Runbook $Runbook
+    }
     elseif ($DependencyType -ieq 'All') {
         Get-RequiredModules -Runbook $Runbook
         Get-RequiredAutomationAssets -Runbook $Runbook
+        Get-RequiredRunbooks -Runbook $Runbook
     }
 }
 
@@ -887,7 +898,7 @@ Azure Resource Group name
 Azure Automation Account name
 
 .PARAMETER DependencyType
-Dependency type: Module, AutomationAsset, or All (default)
+Dependency type: Module, AutomationAsset, Runbook, or All (default)
 
 .EXAMPLE
 Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -DependencyType Module
@@ -949,7 +960,7 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
         [string]
         $Slot = 'Published',
 
-        [ValidateSet('Module', 'AutomationAsset', 'All')]
+        [ValidateSet('Module', 'AutomationAsset', 'Runbook', 'All')]
         [string]
         $DependencyType = 'All',
 
