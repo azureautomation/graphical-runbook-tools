@@ -792,10 +792,28 @@ function Get-AutomationAssets(
 }
 
 function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CertificateName -AssetAccessCommandNames 'Get-AutomationCertificate' -DependencyType AutomationCertificate
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName ConnectionName -AssetAccessCommandNames 'Get-AutomationConnection' -DependencyType AutomationConnection
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CredentialName -AssetAccessCommandNames 'Get-AutomationCredential' -DependencyType AutomationCredential
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName VariableName -AssetAccessCommandNames ('Get-AutomationVariable', 'Set-AutomationVariable') -DependencyType AutomationVariable
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName CertificateName `
+        -AssetAccessCommandNames ('Get-AutomationCertificate', 'Get-AzureAutomationCertificate', 'Get-AzureRmAutomationCertificate') `
+        -DependencyType AutomationCertificate
+
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName ConnectionName `
+        -AssetAccessCommandNames ('Get-AutomationConnection', 'Get-AzureAutomationConnection', 'Get-AzureRmAutomationConnection') `
+        -DependencyType AutomationConnection
+
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName CredentialName `
+        -AssetAccessCommandNames ('Get-AutomationPSCredential', 'Get-AzureAutomationCredential', 'Get-AzureRmAutomationCredential') `
+        -DependencyType AutomationCredential
+
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName VariableName `
+        -AssetAccessCommandNames (
+            'Get-AutomationVariable', 'Set-AutomationVariable',
+            'Get-AzureAutomationVariable', 'Get-AzureRmAutomationVariable',
+            'Set-AzureAutomationVariable', 'Set-AzureRmAutomationVariable') `
+        -DependencyType AutomationVariable
 }
 
 function Get-GraphRunbookDependencyByGraphRunbook(

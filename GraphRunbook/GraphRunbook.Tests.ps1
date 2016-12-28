@@ -1081,7 +1081,7 @@ Activities = @(
             
             It "Outputs required Automation Assets" {
                 $RequiredAssets = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType AutomationAsset
-                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 12
+                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 13
 
                 $RequiredVariables = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationVariable' }
                 $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 4
@@ -1104,9 +1104,9 @@ Activities = @(
                 $RequiredConnections[3].Name | Should be 'Connection4'
                 
                 $RequiredCredentials = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationCredential' }
-                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 2
                 $RequiredCredentials[0].Name | Should be 'Credential1'
-                #$RequiredCredentials[1].Name | Should be 'Credential2'
+                $RequiredCredentials[1].Name | Should be 'Credential2'
             }
         }
 
