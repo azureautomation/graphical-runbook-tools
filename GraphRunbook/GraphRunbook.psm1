@@ -737,9 +737,30 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
 #region Get-GraphRunbookDependency
 
+function Get-RequiredModules([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { @{ Name = $_; Type = 'Module' } }
+}
+
 function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
     $Parameters = $Runbook.Activities | ForEach-Object Parameters
     $Parameters | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
+}
+
+function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $ValueDescriptors = Get-ValueDescriptor $Runbook
+
+    $ValueDescriptors | ForEach-Object VariableName | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
+    
+    $ValueDescriptors | ForEach-Object CertificateName | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { @{ Name = $_; Type = 'AutomationCertificate' } }
+    
+    $ValueDescriptors | ForEach-Object ConnectionName | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { @{ Name = $_; Type = 'AutomationConnection' } }
+    
+    $ValueDescriptors | ForEach-Object CredentialName | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { @{ Name = $_; Type = 'AutomationCredential' } }
 }
 
 function Get-GraphRunbookDependencyByGraphRunbook(
@@ -747,23 +768,14 @@ function Get-GraphRunbookDependencyByGraphRunbook(
     [string]$DependencyType) {
 
     if ($DependencyType -ieq 'Module') {
-        $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Where-Object { $_ } | Sort-Object -Unique |
-            ForEach-Object { @{ Name = $_; Type = 'Module' } }
+        Get-RequiredModules -Runbook $Runbook
     }
     elseif ($DependencyType -ieq 'AutomationAsset') {
-        $ValueDescriptors = Get-ValueDescriptor $Runbook
-
-        $ValueDescriptors | ForEach-Object VariableName | Where-Object { $_ } | Sort-Object -Unique |
-            ForEach-Object { @{ Name = $_; Type = 'AutomationVariable' } }
-        
-        $ValueDescriptors | ForEach-Object CertificateName | Where-Object { $_ } | Sort-Object -Unique |
-            ForEach-Object { @{ Name = $_; Type = 'AutomationCertificate' } }
-        
-        $ValueDescriptors | ForEach-Object ConnectionName | Where-Object { $_ } | Sort-Object -Unique |
-            ForEach-Object { @{ Name = $_; Type = 'AutomationConnection' } }
-        
-        $ValueDescriptors | ForEach-Object CredentialName | Where-Object { $_ } | Sort-Object -Unique |
-            ForEach-Object { @{ Name = $_; Type = 'AutomationCredential' } }
+        Get-RequiredAutomationAssets -Runbook $Runbook
+    }
+    elseif ($DependencyType -ieq 'All') {
+        Get-RequiredModules -Runbook $Runbook
+        Get-RequiredAutomationAssets -Runbook $Runbook
     }
 }
 
