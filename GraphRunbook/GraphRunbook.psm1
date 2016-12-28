@@ -774,28 +774,28 @@ function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runb
 function Get-AutomationAssets(
     [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
     [string]$ValueDescriptorPropertyName,
-    [string[]]$CommandNames,
+    [string[]]$AssetAccessCommandNames,
     [string]$DependencyType) {
 
-    $ValueDescriptors = Get-ValueDescriptor $Runbook
+    $NamesFromValueDescriptors = Get-ValueDescriptor $Runbook | ForEach-Object -MemberName $ValueDescriptorPropertyName
 
-    $AssetNames = $ValueDescriptors | ForEach-Object -MemberName $ValueDescriptorPropertyName
-
-    $AssetNames += $Runbook.Activities |
-        Where-Object { $CommandNames -icontains $_.CommandType.CommandName } |
+    $NamesFromAssetAccessCommands += $Runbook.Activities |
+        Where-Object { $AssetAccessCommandNames -icontains $_.CommandType.CommandName } |
         ForEach-Object { $_.Parameters['Name'] } |
         Where-Object { $_ -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor] } |
         ForEach-Object { $_.Value }
 
-    $AssetNames | Where-Object { $_ } | Sort-Object -Unique |
+    $AllNames = $NamesFromValueDescriptors + $NamesFromAssetAccessCommands
+
+    $AllNames | Where-Object { $_ } | Sort-Object -Unique |
         ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList $DependencyType, $_ }
 }
 
 function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CertificateName -CommandNames 'Get-AutomationCertificate' -DependencyType AutomationCertificate
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName ConnectionName -CommandNames 'Get-AutomationConnection' -DependencyType AutomationConnection
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CredentialName -CommandNames 'Get-AutomationCredential' -DependencyType AutomationCredential
-    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName VariableName -CommandNames ('Get-AutomationVariable', 'Set-AutomationVariable') -DependencyType AutomationVariable
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CertificateName -AssetAccessCommandNames 'Get-AutomationCertificate' -DependencyType AutomationCertificate
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName ConnectionName -AssetAccessCommandNames 'Get-AutomationConnection' -DependencyType AutomationConnection
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName CredentialName -AssetAccessCommandNames 'Get-AutomationCredential' -DependencyType AutomationCredential
+    Get-AutomationAssets -Runbook $Runbook -ValueDescriptorPropertyName VariableName -AssetAccessCommandNames ('Get-AutomationVariable', 'Set-AutomationVariable') -DependencyType AutomationVariable
 }
 
 function Get-GraphRunbookDependencyByGraphRunbook(
