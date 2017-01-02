@@ -1166,6 +1166,8 @@ Activities = @(
                 (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
 
             $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookA'))
+
+            $Runbook.AddActivity((New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'))
             
             It "Outputs all dependencies" {
                 $AllDependencies = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType All

@@ -768,7 +768,7 @@ function Get-RequiredModules([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runb
 
 function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
     $Parameters = $Runbook.Activities | ForEach-Object Parameters
-    $Parameters | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
+    $Parameters | Where-Object { $_ } | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
 }
 
 function Get-AutomationAssets(
