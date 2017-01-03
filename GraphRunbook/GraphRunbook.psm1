@@ -667,7 +667,7 @@ Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook -
 Specify the Microsoft Azure Automation Graphical Authoring SDK installation directory.
 
 .EXAMPLE
-Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -Verbose | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
+Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -PipelineVariable Runbook | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | Convert-GraphRunbookToPowerShellData -Verbose | %{ $_ | Out-File "$HOME\Desktop\AllRunbooks\$($Runbook.Name).psd1" }
 Retrieve all published graphical runbooks from a specified Azure Automation account, convert them to PowerShell data, and save the results to .psd1 files.
 
 .LINK
@@ -697,18 +697,25 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
+        [Alias('Name')]
         [string]
         $RunbookName,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
         [string]
         $ResourceGroupName,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
         [string]
         $AutomationAccountName,
@@ -723,24 +730,28 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
         $GraphicalAuthoringSdkDirectory
     )
 
-    Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    begin {
+        Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    }
 
-    switch ($PSCmdlet.ParameterSetName) {
-        'ByGraphRunbook' {
-            Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
-        }
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            'ByGraphRunbook' {
+                Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
+            }
 
-        'ByRunbookFileName' {
-            Convert-GraphRunbookFileToPowerShellData $RunbookFileName -ErrorAction Stop
-        }
+            'ByRunbookFileName' {
+                Convert-GraphRunbookFileToPowerShellData $RunbookFileName -ErrorAction Stop
+            }
 
-        'ByRunbookName' {
-            Convert-GraphRunbookInAzureToPowerShellData `
-                -RunbookName $RunbookName `
-                -Slot $Slot `
-                -ResourceGroupName $ResourceGroupName `
-                -AutomationAccountName $AutomationAccountName `
-                -ErrorAction Stop
+            'ByRunbookName' {
+                Convert-GraphRunbookInAzureToPowerShellData `
+                    -RunbookName $RunbookName `
+                    -Slot $Slot `
+                    -ResourceGroupName $ResourceGroupName `
+                    -AutomationAccountName $AutomationAccountName `
+                    -ErrorAction Stop
+            }
         }
     }
 }
