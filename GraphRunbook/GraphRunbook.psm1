@@ -715,6 +715,7 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
         [Parameter(
             ParameterSetName = 'ByRunbookName')]
+        [ValidateSet('Published', 'Draft')]
         [string]
         $Slot = 'Published',
 
@@ -969,6 +970,7 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
         [Parameter(
             ParameterSetName = 'ByRunbookName')]
+        [ValidateSet('Published', 'Draft')]
         [string]
         $Slot = 'Published',
 
