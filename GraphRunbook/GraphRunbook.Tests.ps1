@@ -5,6 +5,20 @@ Get-Module -Name $sut -All | Remove-Module -Force -ErrorAction Ignore
 Import-Module -Name "$here\$sut.psm1" -Force -ErrorAction Stop
 
 InModuleScope $sut {
+    function WithRunbookFile(
+            [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
+            [scriptblock]$Action) {
+        $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
+        $File = New-TemporaryFile
+        try {
+            $SerializedRunbook | Out-File $File.FullName
+            $Action.Invoke($File)
+        }
+        finally {
+            Remove-Item $File -ErrorAction SilentlyContinue
+        }
+    }
+    
     Describe "Show-GraphRunbookActivityTraces" {
 
         $TestJobId = New-Guid
@@ -908,10 +922,9 @@ Links = @(
             $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
             $Activity = New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'
             $Runbook.AddActivity($Activity)
-            $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
-            $File = New-TemporaryFile
-            try {
-                $SerializedRunbook | Out-File $File.FullName
+
+            WithRunbookFile -Runbook $Runbook -Action {
+                param($File)
 
                 It "Converts GraphRunbook to text" {
                     $Text = Convert-GraphRunbookToPowerShellData -RunbookFileName $File.FullName
@@ -930,9 +943,6 @@ Activities = @(
 
 "@
                 }
-            }
-            finally {
-                Remove-Item $File -ErrorAction SilentlyContinue
             }
         }
 
@@ -977,6 +987,287 @@ Activities = @(
 }
 
 "@
+                Assert-VerifiableMocks
+            }
+        }
+    }
+
+    Describe "Get-GraphRunbookDependency" {
+        function New-CommandActivity($ModuleName, $CommandName = 'Do-Something', $ValueDescriptors) {
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.ModuleName = $ModuleName
+            $CommandActivityType.CommandName = $CommandName
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            foreach ($ValueDescriptor in $ValueDescriptors) {
+                [void]$Activity.Parameters.Add((New-Guid).ToString(), $ValueDescriptor)
+            }
+            $Activity
+        }
+
+        function New-AssetAccessCommandActivity($ModuleName, $CommandName, $AssetName) {
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = $CommandName
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $ValueDescriptor = New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList $AssetName
+            [void]$Activity.Parameters.Add('Name', $ValueDescriptor)
+            $Activity
+        }
+
+        function New-GetAutomationCertificateActivity($CertificateName) {
+            New-AssetAccessCommandActivity -CommandName 'Get-AutomationCertificate' -AssetName $CertificateName
+        }
+
+        function New-GetAutomationConnectionActivity($ConnectionName) {
+            New-AssetAccessCommandActivity -CommandName 'Get-AutomationConnection' -AssetName $ConnectionName
+        }
+
+        function New-GetAutomationCredentialActivity($CredentialName) {
+            New-AssetAccessCommandActivity -CommandName 'Get-AutomationPSCredential' -AssetName $CredentialName
+        }
+
+        function New-GetAutomationVariableActivity($VariableName) {
+            New-AssetAccessCommandActivity -CommandName 'Get-AutomationVariable' -AssetName $VariableName
+        }
+
+        function New-SetAutomationVariableActivity($VariableName) {
+            New-AssetAccessCommandActivity -CommandName 'Set-AutomationVariable' -AssetName $VariableName
+        }
+
+        function New-InvokeRunbookActivity($RunbookName, $ValueDescriptors) {
+            $InvokeRunbookCommandActivityType = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivityType
+            $InvokeRunbookCommandActivityType.CommandName = $RunbookName
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.InvokeRunbookActivity -ArgumentList New-Guid, $InvokeRunbookCommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            foreach ($ValueDescriptor in $ValueDescriptors) {
+                [void]$Activity.Parameters.Add((New-Guid).ToString(), $ValueDescriptor)
+            }
+            $Activity
+        }
+
+        Context "When modules are requested" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleB'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName ''))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'modulea'))
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'MODULEB'))
+            
+            It "Outputs required modules" {
+                $RequiredModules = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Module
+                $RequiredModules | Measure-Object | ForEach-Object Count | Should be 2
+                ($RequiredModules[0].Name -ieq 'ModuleA') | Should be $true
+                $RequiredModules[0].Type | Should be 'Module'
+                ($RequiredModules[1].Name -ieq 'ModuleB') | Should be $true
+                $RequiredModules[1].Type | Should be 'Module'
+            }
+        }
+
+        Context "When Automation Assets are requested" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'VARIABLE1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection3'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable2'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'Certificate2')))
+
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors @()))
+
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection2'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCertificateValueDescriptor -ArgumentList 'certificate1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationConnectionValueDescriptor -ArgumentList 'Connection1')))
+
+            $Runbook.AddActivity((New-GetAutomationCertificateActivity -CertificateName 'Certificate3'))
+            $Runbook.AddActivity((New-GetAutomationConnectionActivity -ConnectionName 'Connection4'))
+            $Runbook.AddActivity((New-GetAutomationCredentialActivity -CredentialName 'Credential2'))
+            $Runbook.AddActivity((New-GetAutomationVariableActivity -VariableName 'Variable3'))
+            $Runbook.AddActivity((New-SetAutomationVariableActivity -VariableName 'variable4'))
+            
+            It "Outputs required Automation Assets" {
+                $RequiredAssets = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType AutomationAsset
+                $RequiredAssets | Measure-Object | ForEach-Object Count | Should be 13
+
+                $RequiredVariables = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationVariable' }
+                $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 4
+                ($RequiredVariables[0].Name -ieq 'Variable1') | Should be $true
+                $RequiredVariables[1].Name | Should be 'Variable2'
+                $RequiredVariables[2].Name | Should be 'Variable3'
+                $RequiredVariables[3].Name | Should be 'variable4'
+                
+                $RequiredCertificates = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationCertificate' }
+                $RequiredCertificates | Measure-Object | ForEach-Object Count | Should be 3
+                $RequiredCertificates[0].Name | Should be 'certificate1'
+                $RequiredCertificates[1].Name | Should be 'Certificate2'
+                $RequiredCertificates[2].Name | Should be 'Certificate3'
+                
+                $RequiredConnections = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationConnection' }
+                $RequiredConnections | Measure-Object | ForEach-Object Count | Should be 4
+                $RequiredConnections[0].Name | Should be 'Connection1'
+                $RequiredConnections[1].Name | Should be 'Connection2'
+                $RequiredConnections[2].Name | Should be 'Connection3'
+                $RequiredConnections[3].Name | Should be 'Connection4'
+                
+                $RequiredCredentials = $RequiredAssets | Where-Object { $_.Type -eq 'AutomationCredential' }
+                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 2
+                $RequiredCredentials[0].Name | Should be 'Credential1'
+                $RequiredCredentials[1].Name | Should be 'Credential2'
+            }
+        }
+
+        Context "When runbooks are requested" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookA'))
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookB'))
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'runbooka'))
+
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = 'Start-AzureRmAutomationRunbook'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $ValueDescriptor = New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'RunbookC'
+            $Activity.Parameters.Add('Name', $ValueDescriptor)
+            $Runbook.AddActivity($Activity)
+
+            $CommandActivityType = New-Object Orchestrator.GraphRunbook.Model.CommandActivityType
+            $CommandActivityType.CommandName = 'Start-AzureAutomationRunbook'
+            $Activity = New-Object Orchestrator.GraphRunbook.Model.CommandActivity -ArgumentList New-Guid, $CommandActivityType
+            $Activity.Parameters = New-Object Orchestrator.GraphRunbook.Model.ActivityParameters
+            $ValueDescriptor = New-Object Orchestrator.GraphRunbook.Model.ConstantValueDescriptor -ArgumentList 'RunbookD'
+            $Activity.Parameters.Add('Name', $ValueDescriptor)
+            $Runbook.AddActivity($Activity)
+
+            It "Outputs required runbooks" {
+                $RequiredRunbooks = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType Runbook
+                $RequiredRunbooks | Measure-Object | ForEach-Object Count | Should be 4
+                ($RequiredRunbooks[0].Name -ieq 'RunbookA') | Should be $true
+                $RequiredRunbooks[0].Type | Should be 'Runbook'
+                $RequiredRunbooks[1].Name | Should be 'RunbookB'
+                $RequiredRunbooks[1].Type | Should be 'Runbook'
+                $RequiredRunbooks[2].Name | Should be 'RunbookC'
+                $RequiredRunbooks[2].Type | Should be 'Runbook'
+                $RequiredRunbooks[3].Name | Should be 'RunbookD'
+                $RequiredRunbooks[3].Type | Should be 'Runbook'
+            }
+        }
+
+        Context "When all dependencies are requested" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
+
+            $Runbook.AddActivity((New-InvokeRunbookActivity -RunbookName 'RunbookA'))
+
+            $Runbook.AddActivity((New-Object Orchestrator.GraphRunbook.Model.WorkflowScriptActivity -ArgumentList 'Activity'))
+            
+            It "Outputs all dependencies" {
+                $AllDependencies = Get-GraphRunbookDependency -Runbook $Runbook -DependencyType All
+                $AllDependencies | Measure-Object | ForEach-Object Count | Should be 4
+
+                $RequiredModules = $AllDependencies | Where-Object { $_.Type -eq 'Module' }
+                $RequiredModules | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredModules.Name | Should be 'ModuleA'
+
+                $RequiredVariables = $AllDependencies | Where-Object { $_.Type -eq 'AutomationVariable' }
+                $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredVariables.Name | Should be 'Variable1'
+                
+                $RequiredCredentials = $AllDependencies | Where-Object { $_.Type -eq 'AutomationCredential' }
+                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredCredentials.Name | Should be 'Credential1'
+
+                $RequiredRunbooks = $AllDependencies | Where-Object { $_.Type -eq 'Runbook' }
+                $RequiredRunbooks | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredRunbooks.Name | Should be 'RunbookA'
+            }
+        }
+
+        Context "When .graphrunbook file name is provided" {
+            $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+            $Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+
+            $Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
+            
+            WithRunbookFile -Runbook $Runbook -Action {
+                param($File)
+
+                It "Outputs all dependencies" {
+                    $AllDependencies = Get-GraphRunbookDependency -RunbookFileName $File.FullName -DependencyType All
+                    $AllDependencies | Measure-Object | ForEach-Object Count | Should be 3
+
+                    $RequiredModules = $AllDependencies | Where-Object { $_.Type -eq 'Module' }
+                    $RequiredModules | Measure-Object | ForEach-Object Count | Should be 1
+                    $RequiredModules.Name | Should be 'ModuleA'
+
+                    $RequiredVariables = $AllDependencies | Where-Object { $_.Type -eq 'AutomationVariable' }
+                    $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 1
+                    $RequiredVariables.Name | Should be 'Variable1'
+                    
+                    $RequiredCredentials = $AllDependencies | Where-Object { $_.Type -eq 'AutomationCredential' }
+                    $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                    $RequiredCredentials.Name | Should be 'Credential1'
+                }
+            }
+        }
+
+        Context "When runbook name is provided" {
+            $TestResourceGroup = 'TestResourceGroupName'
+            $TestAutomationAccount = 'TestAccountName'
+            $TestRunbookName = 'TestRunbookName'
+
+            Mock Export-AzureRMAutomationRunbook -Verifiable `
+                -MockWith {
+                    $ResourceGroupName | Should be $TestResourceGroup > $null
+                    $AutomationAccountName | Should be $AutomationAccountName > $null
+                    $Name | Should be $TestRunbookName > $null
+                    $Slot | Should be 'Published' > $null
+
+                    $Runbook = New-Object Orchestrator.GraphRunbook.Model.GraphRunbook
+                    [void]$Runbook.AddActivity((New-CommandActivity -ModuleName 'ModuleA'))
+
+                    [void]$Runbook.AddActivity((New-CommandActivity -ValueDescriptors `
+                        (New-Object Orchestrator.GraphRunbook.Model.AutomationVariableValueDescriptor -ArgumentList 'Variable1'),
+                        (New-Object Orchestrator.GraphRunbook.Model.AutomationCredentialValueDescriptor -ArgumentList 'Credential1')))
+                    
+                    $SerializedRunbook = [Orchestrator.GraphRunbook.Model.Serialization.RunbookSerializer]::Serialize($Runbook)
+                    $OutputFileName = Join-Path $OutputFolder "$Name.graphrunbook"
+                    $SerializedRunbook | Out-File $OutputFileName
+
+                    Get-Item -Path $OutputFileName
+                }
+
+            It "Outputs all dependencies" {
+                $AllDependencies = Get-GraphRunbookDependency `
+                    -RunbookName $TestRunbookName `
+                    -ResourceGroupName $TestResourceGroup `
+                    -AutomationAccount $TestAutomationAccount `
+                    -DependencyType All
+
+                $AllDependencies | Measure-Object | ForEach-Object Count | Should be 3
+
+                $RequiredModules = $AllDependencies | Where-Object { $_.Type -eq 'Module' }
+                $RequiredModules | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredModules.Name | Should be 'ModuleA'
+
+                $RequiredVariables = $AllDependencies | Where-Object { $_.Type -eq 'AutomationVariable' }
+                $RequiredVariables | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredVariables.Name | Should be 'Variable1'
+                
+                $RequiredCredentials = $AllDependencies | Where-Object { $_.Type -eq 'AutomationCredential' }
+                $RequiredCredentials | Measure-Object | ForEach-Object Count | Should be 1
+                $RequiredCredentials.Name | Should be 'Credential1'
+
                 Assert-VerifiableMocks
             }
         }

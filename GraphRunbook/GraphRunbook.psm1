@@ -579,7 +579,7 @@ function Convert-GraphRunbookFileToPowerShellData($RunbookFileName) {
     Convert-GraphRunbookObjectToPowerShellData $Runbook
 }
 
-function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName) {
+function WithExportedRunbook($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName, [scriptblock]$Action) {
     $OutputFolder = New-TemporaryDirectory
     Write-Verbose "Created temporary directory: $OutputFolder"
     try {
@@ -594,10 +594,17 @@ function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $Resou
         $FullFileName = Join-Path $OutputFolder $RunbookFile.Name
         Write-Verbose "Exported runbook '$RunbookName' to file '$FullFileName'"
 
-        Convert-GraphRunbookFileToPowerShellData $FullFileName
+        $Action.Invoke($FullFileName)
     }
     finally {
         Remove-Item $OutputFolder -Recurse -Force
+    }
+}
+
+function Convert-GraphRunbookInAzureToPowerShellData($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName) {
+    WithExportedRunbook -RunbookName $RunbookName -Slot $Slot -ResourceGroupName $ResourceGroupName -AutomationAccountName $AutomationAccountName -Action {
+        param($FullFileName)
+        Convert-GraphRunbookFileToPowerShellData $FullFileName
     }
 }
 
@@ -645,19 +652,23 @@ Azure Automation Account name
 
 .EXAMPLE
 Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook
-Output graphical runbook converted to PowerShell data.
+Convert a graphical runbook from .graphrunbook file to PowerShell data.
 
 .EXAMPLE
 Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook | Out-File ./MyRunbook.psd1
-Save graphical runbook converted to PowerShell data as a .psd1 file.
+Save a graphical runbook converted to PowerShell data as a .psd1 file.
+
+.EXAMPLE
+Convert-GraphRunbookToPowerShellData -RunbookName MyRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount
+Convert a graphical runbook from an Azure Automation account to PowerShell data.
 
 .EXAMPLE
 Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
 Specify the Microsoft Azure Automation Graphical Authoring SDK installation directory.
 
 .EXAMPLE
-Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -Verbose | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
-Retrieve all published graphical runbooks from a specified Automation Account, convert them to PowerSHell data, and save the results to .psd1 files.
+Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -PipelineVariable Runbook | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | Convert-GraphRunbookToPowerShellData -Verbose | %{ $_ | Out-File "$HOME\Desktop\AllRunbooks\$($Runbook.Name).psd1" }
+Retrieve all published graphical runbooks from a specified Azure Automation account, convert them to PowerShell data, and save the results to .psd1 files.
 
 .LINK
 Source code: https://github.com/azureautomation/graphical-runbook-tools
@@ -669,7 +680,7 @@ Azure Automation: https://azure.microsoft.com/services/automation
 Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en-us/download/details.aspx?id=50734
 #>
     [CmdletBinding()]
-
+    [OutputType([string])]
     param(
         [Parameter(
             Mandatory = $true,
@@ -686,24 +697,32 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
+        [Alias('Name')]
         [string]
         $RunbookName,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
         [string]
         $ResourceGroupName,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
         [string]
         $AutomationAccountName,
 
         [Parameter(
             ParameterSetName = 'ByRunbookName')]
+        [ValidateSet('Published', 'Draft')]
         [string]
         $Slot = 'Published',
 
@@ -711,24 +730,299 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
         $GraphicalAuthoringSdkDirectory
     )
 
-    Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    begin {
+        Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    }
 
-    switch ($PSCmdlet.ParameterSetName) {
-        'ByGraphRunbook' {
-            Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            'ByGraphRunbook' {
+                Convert-GraphRunbookObjectToPowerShellData $Runbook -ErrorAction Stop
+            }
+
+            'ByRunbookFileName' {
+                Convert-GraphRunbookFileToPowerShellData $RunbookFileName -ErrorAction Stop
+            }
+
+            'ByRunbookName' {
+                Convert-GraphRunbookInAzureToPowerShellData `
+                    -RunbookName $RunbookName `
+                    -Slot $Slot `
+                    -ResourceGroupName $ResourceGroupName `
+                    -AutomationAccountName $AutomationAccountName `
+                    -ErrorAction Stop
+            }
         }
+    }
+}
 
-        'ByRunbookFileName' {
-            Convert-GraphRunbookFileToPowerShellData $RunbookFileName -ErrorAction Stop
+#endregion
+
+#region Get-GraphRunbookDependency
+
+Add-Type -Language 'CSharp' -TypeDefinition @"
+    namespace GraphRunbook
+    {
+        public class Dependency
+        {
+            public Dependency(string type, string name)
+            {
+                this.Type = type;
+                this.Name = name;
+            }
+
+            public string Type { get; set; }
+            public string Name { get; set; }
         }
+    }
+"@
 
-        'ByRunbookName' {
-            Convert-GraphRunbookInAzureToPowerShellData `
-                -RunbookName $RunbookName `
-                -Slot $Slot `
-                -ResourceGroupName $ResourceGroupName `
-                -AutomationAccountName $AutomationAccountName `
-                -ErrorAction Stop
+function Get-RequiredModules([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $Runbook.Activities | ForEach-Object CommandType | ForEach-Object ModuleName | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'Module', $_ }
+}
+
+function Get-ValueDescriptor([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $Parameters = $Runbook.Activities | ForEach-Object Parameters
+    $Parameters | Where-Object { $_ } | ForEach-Object { foreach ($Entry in $_.GetEnumerator()) { $Entry.Value } }
+}
+
+function Get-AutomationAssets(
+    [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
+    [string]$ValueDescriptorPropertyName,
+    [string[]]$AssetAccessCommandNames,
+    [string]$DependencyType) {
+
+    $NamesFromValueDescriptors = Get-ValueDescriptor $Runbook | ForEach-Object -MemberName $ValueDescriptorPropertyName
+
+    $NamesFromAssetAccessCommands += $Runbook.Activities |
+        Where-Object { $AssetAccessCommandNames -icontains $_.CommandType.CommandName } |
+        ForEach-Object { $_.Parameters['Name'] } |
+        Where-Object { $_ -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor] } |
+        ForEach-Object { $_.Value }
+
+    $AllNames = $NamesFromValueDescriptors + $NamesFromAssetAccessCommands
+
+    $AllNames | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList $DependencyType, $_ }
+}
+
+function Get-RequiredAutomationAssets([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName CertificateName `
+        -AssetAccessCommandNames ('Get-AutomationCertificate', 'Get-AzureAutomationCertificate', 'Get-AzureRmAutomationCertificate') `
+        -DependencyType AutomationCertificate
+
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName ConnectionName `
+        -AssetAccessCommandNames ('Get-AutomationConnection', 'Get-AzureAutomationConnection', 'Get-AzureRmAutomationConnection') `
+        -DependencyType AutomationConnection
+
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName CredentialName `
+        -AssetAccessCommandNames ('Get-AutomationPSCredential', 'Get-AzureAutomationCredential', 'Get-AzureRmAutomationCredential') `
+        -DependencyType AutomationCredential
+
+    Get-AutomationAssets -Runbook $Runbook `
+        -ValueDescriptorPropertyName VariableName `
+        -AssetAccessCommandNames (
+            'Get-AutomationVariable', 'Set-AutomationVariable',
+            'Get-AzureAutomationVariable', 'Get-AzureRmAutomationVariable',
+            'Set-AzureAutomationVariable', 'Set-AzureRmAutomationVariable') `
+        -DependencyType AutomationVariable
+}
+
+function Get-RequiredRunbooks([Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook) {
+    $NamesFromInvokeRunbookActivity = $Runbook.Activities | ForEach-Object RunbookActivityType | ForEach-Object CommandName
+
+    $NamesFromCommandActivity = $Runbook.Activities |
+        Where-Object { @('Start-AzureAutomationRunbook', 'Start-AzureRmAutomationRunbook') -icontains $_.CommandType.CommandName } |
+        ForEach-Object { $_.Parameters['Name'] } |
+        Where-Object { $_ -is [Orchestrator.GraphRunbook.Model.ConstantValueDescriptor] } |
+        ForEach-Object { $_.Value }
+
+    $AllNames = $NamesFromInvokeRunbookActivity + $NamesFromCommandActivity
+
+    $AllNames | Where-Object { $_ } | Sort-Object -Unique |
+        ForEach-Object { New-Object GraphRunbook.Dependency -ArgumentList 'Runbook', $_ }
+}
+
+function Get-GraphRunbookDependencyByGraphRunbook(
+    [Orchestrator.GraphRunbook.Model.GraphRunbook]$Runbook,
+    [string]$DependencyType) {
+
+    if ($DependencyType -ieq 'Module') {
+        Get-RequiredModules -Runbook $Runbook
+    }
+    elseif ($DependencyType -ieq 'AutomationAsset') {
+        Get-RequiredAutomationAssets -Runbook $Runbook
+    }
+    elseif ($DependencyType -ieq 'Runbook') {
+        Get-RequiredRunbooks -Runbook $Runbook
+    }
+    elseif ($DependencyType -ieq 'All') {
+        Get-RequiredModules -Runbook $Runbook
+        Get-RequiredAutomationAssets -Runbook $Runbook
+        Get-RequiredRunbooks -Runbook $Runbook
+    }
+}
+
+function Get-GraphRunbookDependencyByRunbookFileName(
+    [string]$RunbookFileName,
+    [string]$DependencyType) {
+
+    Write-Verbose "Inspecting runbook file $RunbookFileName"
+    $Runbook = Get-GraphRunbookFromFile -FileName $RunbookFileName
+    Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType
+}
+
+function Get-GraphRunbookDependencyByRunbookName($RunbookName, $Slot, $ResourceGroupName, $AutomationAccountName, $DependencyType) {
+    WithExportedRunbook -RunbookName $RunbookName -Slot $Slot -ResourceGroupName $ResourceGroupName -AutomationAccountName $AutomationAccountName -Action {
+        param($FullFileName)
+        Get-GraphRunbookDependencyByRunbookFileName -RunbookFileName $FullFileName -DependencyType $DependencyType
+    }
+}
+
+function Get-GraphRunbookDependency {
+<#
+.SYNOPSIS
+Outputs graphical runbook dependencies
+
+.DESCRIPTION
+Inspects a graphical runbook and outputs explicitly specified dependencies: required module names, accessed Automation Asset (Certificate, Connection, Credential, and Variable) names, and invoked runbook names.
+
+Prerequisites
+=============
+
+1. Install Microsoft Azure Automation Graphical Authoring SDK (https://www.microsoft.com/en-us/download/details.aspx?id=50734).
+
+2. Before invoking Get-GraphRunbookDependency with RunbookName, ResourceGroupName, and AutomationAccountName parameters, make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet).
+
+.PARAMETER Runbook
+An instance of Orchestrator.GraphRunbook.Model.GraphRunbook type
+
+.PARAMETER GraphicalAuthoringSdkDirectory
+Microsoft Azure Automation Graphical Authoring SDK installation directory
+
+.PARAMETER RunbookFileName
+Runbook file name (.graphrunbook)
+
+.PARAMETER RunbookName
+Runbook name
+
+.PARAMETER Slot
+Specifies whether this cmdlet converts the draft or published content of the runbook. Valid values are:
+        -- Published
+        -- Draft
+
+.PARAMETER ResourceGroupName
+Azure Resource Group name
+
+.PARAMETER AutomationAccountName
+Azure Automation Account name
+
+.PARAMETER DependencyType
+Dependency type: Module, AutomationAsset, Runbook, or All (default)
+
+.EXAMPLE
+Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -DependencyType Module
+Output modules that the specified graphical runbook depends on.
+
+.EXAMPLE
+Get-GraphRunbookDependency -RunbookName MyRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount
+Output all dependencies of a graphical runbook from an Azure Automation account.
+
+.EXAMPLE
+Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
+Specify the Microsoft Azure Automation Graphical Authoring SDK installation directory.
+
+.LINK
+Source code: https://github.com/azureautomation/graphical-runbook-tools
+
+.LINK
+Azure Automation: https://azure.microsoft.com/services/automation
+
+.LINK
+Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en-us/download/details.aspx?id=50734
+#>
+    [CmdletBinding()]
+    [OutputType([GraphRunbook.Dependency])]
+    param(
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ByGraphRunbook')]
+        # Should be [Orchestrator.GraphRunbook.Model.GraphRunbook], but declaring this type here would require
+        # the Model assembly to be pre-loaded even before accessing module metadata
+        $Runbook,
+
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = 'ByRunbookFileName')]
+        [string]
+        $RunbookFileName,
+
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ByRunbookName')]
+        [Alias('Name')]
+        [string]
+        $RunbookName,
+
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ByRunbookName')]
+        [string]
+        $ResourceGroupName,
+
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            ParameterSetName = 'ByRunbookName')]
+        [string]
+        $AutomationAccountName,
+
+        [Parameter(
+            ParameterSetName = 'ByRunbookName')]
+        [ValidateSet('Published', 'Draft')]
+        [string]
+        $Slot = 'Published',
+
+        [ValidateSet('Module', 'AutomationAsset', 'Runbook', 'All')]
+        [string]
+        $DependencyType = 'All',
+
+        [string]
+        $GraphicalAuthoringSdkDirectory
+    )
+    
+    begin {
+        Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    }
+
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            'ByGraphRunbook' {
+                Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType -ErrorAction Stop
+            }
+
+            'ByRunbookFileName' {
+                Get-GraphRunbookDependencyByRunbookFileName -RunbookFileName $RunbookFileName -DependencyType $DependencyType -ErrorAction Stop
+            }
+
+            'ByRunbookName' {
+                Get-GraphRunbookDependencyByRunbookName `
+                    -RunbookName $RunbookName `
+                    -Slot $Slot `
+                    -ResourceGroupName $ResourceGroupName `
+                    -AutomationAccountName $AutomationAccountName `
+                    -DependencyType $DependencyType `
+                    -ErrorAction Stop
+            }
         }
     }
 }
@@ -737,3 +1031,4 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
 Export-ModuleMember -Function Show-GraphRunbookActivityTraces
 Export-ModuleMember -Function Convert-GraphRunbookToPowerShellData
+Export-ModuleMember -Function Get-GraphRunbookDependency
