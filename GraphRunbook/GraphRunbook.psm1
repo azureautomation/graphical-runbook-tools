@@ -889,7 +889,7 @@ function Get-GraphRunbookDependency {
 Outputs graphical runbook dependencies
 
 .DESCRIPTION
-Inspects a graphical runbook and outputs explicitly specified dependencies: module names, Automation Asset (Certificate, Connection, Credential, and Variable) names, runbook names.
+Inspects a graphical runbook and outputs explicitly specified dependencies: required module names, accessed Automation Asset (Certificate, Connection, Credential, and Variable) names, and invoked runbook names.
 
 Prerequisites
 =============
