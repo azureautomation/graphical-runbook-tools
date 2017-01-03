@@ -963,18 +963,25 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
+        [Alias('Name')]
         [string]
         $RunbookName,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
         [string]
         $ResourceGroupName,
 
         [Parameter(
             Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             ParameterSetName = 'ByRunbookName')]
         [string]
         $AutomationAccountName,
@@ -993,25 +1000,29 @@ Microsoft Azure Automation Graphical Authoring SDK: https://www.microsoft.com/en
         $GraphicalAuthoringSdkDirectory
     )
     
-    Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    begin {
+        Add-GraphRunbookModelAssembly $GraphicalAuthoringSdkDirectory
+    }
 
-    switch ($PSCmdlet.ParameterSetName) {
-        'ByGraphRunbook' {
-            Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType -ErrorAction Stop
-        }
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            'ByGraphRunbook' {
+                Get-GraphRunbookDependencyByGraphRunbook -Runbook $Runbook -DependencyType $DependencyType -ErrorAction Stop
+            }
 
-        'ByRunbookFileName' {
-            Get-GraphRunbookDependencyByRunbookFileName -RunbookFileName $RunbookFileName -DependencyType $DependencyType -ErrorAction Stop
-        }
+            'ByRunbookFileName' {
+                Get-GraphRunbookDependencyByRunbookFileName -RunbookFileName $RunbookFileName -DependencyType $DependencyType -ErrorAction Stop
+            }
 
-        'ByRunbookName' {
-            Get-GraphRunbookDependencyByRunbookName `
-                -RunbookName $RunbookName `
-                -Slot $Slot `
-                -ResourceGroupName $ResourceGroupName `
-                -AutomationAccountName $AutomationAccountName `
-                -DependencyType $DependencyType `
-                -ErrorAction Stop
+            'ByRunbookName' {
+                Get-GraphRunbookDependencyByRunbookName `
+                    -RunbookName $RunbookName `
+                    -Slot $Slot `
+                    -ResourceGroupName $ResourceGroupName `
+                    -AutomationAccountName $AutomationAccountName `
+                    -DependencyType $DependencyType `
+                    -ErrorAction Stop
+            }
         }
     }
 }
