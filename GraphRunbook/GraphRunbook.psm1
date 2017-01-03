@@ -652,11 +652,15 @@ Azure Automation Account name
 
 .EXAMPLE
 Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook
-Output graphical runbook converted to PowerShell data.
+Convert a graphical runbook from .graphrunbook file to PowerShell data.
 
 .EXAMPLE
 Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook | Out-File ./MyRunbook.psd1
-Save graphical runbook converted to PowerShell data as a .psd1 file.
+Save a graphical runbook converted to PowerShell data as a .psd1 file.
+
+.EXAMPLE
+Convert-GraphRunbookToPowerShellData -RunbookName MyRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount
+Convert a graphical runbook from an Azure Automation account to PowerShell data.
 
 .EXAMPLE
 Convert-GraphRunbookToPowerShellData -RunbookFileName ./MyRunbook.graphrunbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
@@ -664,7 +668,7 @@ Specify the Microsoft Azure Automation Graphical Authoring SDK installation dire
 
 .EXAMPLE
 Get-AzureRmAutomationRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount | ?{ ($_.RunbookType -match '^Graph') -and ($_.State -eq 'Published') } | %{ Convert-GraphRunbookToPowerShellData -RunbookName $_.Name -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount -Verbose | Out-File C:\Users\Me\Desktop\AllRunbooks\$($_.Name).psd1 }
-Retrieve all published graphical runbooks from a specified Automation Account, convert them to PowerSHell data, and save the results to .psd1 files.
+Retrieve all published graphical runbooks from a specified Azure Automation account, convert them to PowerShell data, and save the results to .psd1 files.
 
 .LINK
 Source code: https://github.com/azureautomation/graphical-runbook-tools
