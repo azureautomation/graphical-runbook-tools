@@ -926,11 +926,11 @@ Dependency type: Module, AutomationAsset, Runbook, or All (default)
 
 .EXAMPLE
 Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -DependencyType Module
-Output modules that the specified runbook depends on.
+Output modules that the specified graphical runbook depends on.
 
 .EXAMPLE
-Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -DependencyType All
-Output all dependencies of the specified runbook.
+Get-GraphRunbookDependency -RunbookName MyRunbook -ResourceGroupName myresourcegroup -AutomationAccountName myautomationaccount
+Output all dependencies of a graphical runbook from an Azure Automation account.
 
 .EXAMPLE
 Get-GraphRunbookDependency -RunbookFileName ./MyRunbook.graphrunbook -GraphicalAuthoringSdkDirectory 'C:\Program Files (x86)\Microsoft Azure Automation Graphical Authoring SDK'
