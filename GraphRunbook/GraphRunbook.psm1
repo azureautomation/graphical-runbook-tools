@@ -84,9 +84,7 @@ function Show-GraphRunbookActivityTraces {
 Shows graphical runbook activity traces for an Azure Automation job
 
 .DESCRIPTION
-Graphical runbook activity tracing data is extremely helpful when testing and troubleshooting graphical runbooks in Azure Automation. Specifically, it can help the user determine the execution order of activities, any activity start and finish time, and any activity input and output data. Azure Automation saves this data encoded in JSON in the job Verbose stream.
-
-Even though this data is very valuable, it may not be directly human-readable in the raw format, especially when activities input and output large and complex objects. Show-GraphRunbookActivityTraces command simplifies this task. It retrieves activity tracing data from a specified Azure Automation job, then parses and displays this data in a user-friendly tree structure:
+Activity tracing data is extremely helpful when testing and troubleshooting graphical runbooks in Azure Automation: it shows the execution order of activities, activity start and finish time, activity input and output data, and more. Azure Automation saves this data encoded in JSON in the job Verbose stream. Even though this data is very valuable, the raw JSON format may be hard to read, especially when activities input and output large and complex objects. Show-GraphRunbookActivityTraces command retrieves activity tracing data and displays it in a user-friendly tree structure:
 
     - Activity execution instance 1
         - Activity name, start time, end time, duration, etc.
@@ -104,20 +102,14 @@ Even though this data is very valuable, it may not be directly human-readable in
 Prerequisites
 =============
 
-1. The following modules are required:
-        AzureRm.Automation
-        PowerShellCookbook
+1. Make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet) before invoking Show-GraphRunbookActivityTraces.
 
-   Run the following commands to install these modules from the PowerShell gallery:
-        Install-Module -Name AzureRM.Automation
-        Install-Module -Name PowerShellCookbook
-
-2. Make sure you add an authenticated Azure account (for example, use Add-AzureRmAcccount cmdlet) before invoking Show-GraphRunbookActivityTraces.
-
-3. In the Azure Portal, enable activity-level tracing *and* verbose logging for a graphical runbook:
+2. In the Azure Portal, enable activity-level tracing *and* verbose logging for a graphical runbook:
     - Runbook Settings -> Logging and tracing
         - Logging verbose records: *On*
         - Trace level: *Basic* or *Detailed*
+
+3. Start the runbook and take note of the job ID.
 
 .PARAMETER ResourceGroupName
 Azure Resource Group name
@@ -616,9 +608,12 @@ Converts a graphical runbook to PowerShell data
 .DESCRIPTION
 Converts a graphical runbook to PowerShell data. The resulting representation contains the entire runbook definition in a human-readable and PowerShell-readable text format. It can be used for inspecting and documenting runbooks, storing them in a source control system, comparing different versions, etc. Furthermore, the resulting representation is valid PowerShell code that constructs a data structure with all the runbook content, so you can save it in a .psd1 file, open it in any PowerShell editing tool, parse it with PowerShell, etc.
 
-IMPORTANT NOTE
-==============
-Even though the resulting representation contains all the data from the original runbook, and it can be used to constract a runbook equivalent to the original one, there is no automated conversion implemented yet. If you intend to use this runbook in Azure Automation later, do *not* discard the original .graphrunbook file after conversion.
+IMPORTANT NOTES
+===============
+
+1. The resulting PowerShell code is not an executable runbook. If this code is executed, it builds a data structure describing the original graphical runbook, but does not run the runbook.
+
+2. Even though the resulting representation contains all the data from the original runbook, and it can theoretically be used to construct a runbook equivalent to the original one, there is no automated conversion back to .graphrunbook implemented yet. If you intend to use this runbook in Azure Automation later, do *not* discard the original .graphrunbook file after conversion.
 
 Prerequisites
 =============
@@ -889,7 +884,9 @@ function Get-GraphRunbookDependency {
 Outputs graphical runbook dependencies
 
 .DESCRIPTION
-Inspects a graphical runbook and outputs explicitly specified dependencies: required module names, accessed Automation Asset (Certificate, Connection, Credential, and Variable) names, and invoked runbook names.
+Inspects a graphical runbook and outputs the runbook dependencies: required modules, accessed Automation Assets (Certificates, Connections, Credentials, and Variables), and invoked runbooks.
+
+This command discovers dependencies explicitly specified in the graphical runbook, but it may not accurately determine dependencies of any PowerShell code (such as Code activity body, PowerShell expressions in activity parameters, or Link and Retry conditions).
 
 Prerequisites
 =============
